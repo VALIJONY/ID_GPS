@@ -1,5 +1,5 @@
-Django==5.1.4
-django-admin-interface==0.29.2
-django-colorfield==0.11.0
-pillow==11.0.0
-PyJWT==2.10.1
+Django
+django-admin-interface
+django-colorfield
+pillow
+PyJWT
