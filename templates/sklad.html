@@ -1,0 +1,168 @@
+{% extends 'base.html'%}
+{%block content%}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SKLAD</title>
+</head>
+<body>
+    {%if request.path != '/sklad/add/' %}
+    <a href="{% url 'skladadd' %}"><button>GPS QO`SHISH</button></a>
+    {%endif%}
+    {%if request.path == '/sklad/add/' %}
+    <a href="{% url 'sklad-list' %}"><button>Orqaga qaytish</button></a>
+    {%endif%}
+
+    <div class="container mx-auto mt-10">
+        <!-- Qidiruv oynasi -->
+        <div class="mb-4">
+            <input 
+                type="text" 
+                id="search-input" 
+                class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Qidirish..." 
+                oninput="filterTable()">
+        </div>
+        <form method="GET" action="{% url 'filter-sklad' %}">
+        <select name="status" class="p-2 border border-gray-300 rounded-lg">
+            <option value="">Barcha</option>
+            <option value="sold" {% if request.GET.status == "sold" %}selected{% endif %}>Sotilgan</option>
+            <option value="unsold" {% if request.GET.status == "unsold" %}selected{% endif %}>Sotilmagan</option>
+        </select>
+    
+        <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-lg">
+            Filtrlash
+        </button>
+    </form>
+        <!-- Jadval -->
+        <table class="min-w-full table-auto border-collapse border border-gray-300">
+            <thead>
+                <tr class="bg-blue-500 text-white">
+                    <th class="px-4 py-2 border">GPS ID</th>
+                    <th class="px-4 py-2 border">Olingan odam</th>
+                    <th class="px-4 py-2 border">Telefon raqam</th>
+                    <th class="px-4 py-2 border">Summa</th>
+                    <th class="px-4 py-2 border">Olingan sana</th>
+                    <th class="px-4 py-2 border">Holat</th>
+                </tr>
+            </thead>
+            <tbody id="sklad-table-body">
+                {% for item in skladlist %}
+                <tr class="hover:bg-gray-100">
+                    <td class="px-4 py-2 border">{{ item.gps_is }}</td>
+                    <td class="px-4 py-2 border">{{ item.olingan_odam }}</td>
+                    <td class="px-4 py-2 border">{{ item.tel_raqam }}</td>
+                    <td class="px-4 py-2 border">{{ item.summa_prixod }}</td>
+                    <td class="px-4 py-2 border">{{ item.olingan_sana }}</td>
+                    <td class="px-4 py-2 border">
+                        {% if item.sotildi_sotilmadi %}
+                            <span class="text-green-600 font-semibold">Sotildi</span>
+                        {% else %}
+                            <span class="text-red-600 font-semibold">Sotilmadi</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+{% if request.path == '/sklad/add/'%}
+    <div class="container mx-auto mt-10">
+        <form method="POST" class="bg-white p-8 rounded-xl shadow-lg max-w-lg mx-auto">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label for="gps_is" class="block text-gray-700 font-medium mb-2">GPS ID</label>
+                {{ form.gps_is }}
+            </div>
+
+            <div class="mb-4">
+                <label for="olingan_odam" class="block text-gray-700 font-medium mb-2">Olingan odam</label>
+                {{ form.olingan_odam }}
+            </div>
+
+            <div class="mb-4">
+                <label for="phone" class="block text-gray-700 font-medium mb-2">Telefon raqam</label>
+                {{ form.tel_raqam }}
+            </div>
+
+            <div class="mb-4">
+                <label for="summa_prixod" class="block text-gray-700 font-medium mb-2">Summa Prixod</label>
+                {{ form.summa_prixod }}
+            </div>
+
+            <div class="mb-4">
+                <label for="olingan_sana" class="block text-gray-700 font-medium mb-2">Olingan sana</label>
+                {{ form.olingan_sana }}
+            </div>
+            <!-- <div class="mb-4">
+                <label class="block text-gray-700 font-medium mb-2">Sotildi yoki Sotilmadi</label>
+                <div class="flex space-x-4">
+                    {{ form.sotildi_sotilmadi }}
+                </div>
+            </div> -->
+            <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Saqlash</button>
+        </form>
+    </div>
+
+{%endif%}
+{% if message %}
+  <!-- Alert message -->
+  <div id="alert-box" class="fixed top-5 right-5 w-80 p-4 bg-green-500 text-white rounded-lg shadow-lg opacity-100 transition-opacity duration-500 ease-in-out">
+    <div class="d-flex align-items-center">
+        <svg class="w-6 h-6 mr-2" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M10 2a8 8 0 11-8 8 8 8 0 018-8zm0 14a6 6 0 100-12 6 6 0 000 12z"></path>
+        </svg>
+        <span>{{message}}</span>
+    </div>
+  </div>
+
+  {%endif%}
+    <script>
+
+
+        function setTodayDate() {
+            const today = new Date();
+            const date = today.toISOString().split('T')[0];
+            document.getElementById('olingan_sana').value = date;
+        }
+
+        window.onload = function() {
+            setTodayDate();  // Olingan sana
+        };
+
+
+
+        function filterTable() {
+    const searchInput = document.getElementById('search-input').value.toLowerCase();
+    const tableRows = document.querySelectorAll('#sklad-table-body tr');
+
+    tableRows.forEach(row => {
+        const cells = row.getElementsByTagName('td');
+        let match = false;
+
+        for (let i = 0; i < cells.length; i++) {
+            const cellText = cells[i].textContent.toLowerCase();
+            if (cellText.includes(searchInput)) {
+                match = true;
+                break;
+            }
+        }
+
+        if (match) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+    </script>
+
+</body>
+</html>
+
+    {%endblock%}
+</body>
+</html>

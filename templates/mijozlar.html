@@ -1,0 +1,44 @@
+{% extends 'base.html'%}
+{%block content%}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Miozlar haqida malumotlar</h1>
+    <table class="table-auto w-full border-collapse border border-gray-300">
+        <thead>
+            <tr class="bg-gray-200">
+                <th class="border border-gray-300 px-4 py-2">Mijoz</th>
+                <th class="border border-gray-300 px-4 py-2">Telefon</th>
+                <th class="border border-gray-300 px-4 py-2">Username</th>
+                <th class="border border-gray-300 px-4 py-2">Dasturiy Ta'minot</th>
+                <th class="border border-gray-300 px-4 py-2">GPS</th>
+                <th class="border border-gray-300 px-4 py-2">GPS SIM-Karta</th>
+                <th class="border border-gray-300 px-4 py-2">To'lov Summasi</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for mijoz in mijozlar_data %}
+            <tr class="hover:bg-gray-100">
+                {% if mijoz.rowspan > 0 %}
+                <td class="border border-gray-300 px-4 py-2" rowspan="{{ mijoz.rowspan }}">{{ mijoz.mijoz }}</td>
+                <td class="border border-gray-300 px-4 py-2" rowspan="{{ mijoz.rowspan }}">{{ mijoz.tel_raqam }}</td>
+                <td class="border border-gray-300 px-4 py-2" rowspan="{{ mijoz.rowspan }}">{{ mijoz.username }}</td>
+                <td class="border border-gray-300 px-4 py-2" rowspan="{{ mijoz.rowspan }}">{{ mijoz.dasturiy_taminot }}</td>
+                {% endif %}
+                <td class="border border-gray-300 px-4 py-2">{{ mijoz.gps }}</td>
+                <td class="border border-gray-300 px-4 py-2">{{ mijoz.sim_karta }}</td>
+                {% if mijoz.rowspan > 0 %}
+                <td class="border border-gray-300 px-4 py-2" rowspan="{{ mijoz.rowspan }}">{{ mijoz.tulov_sammasi }}</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+{%endblock%}
+</body>
+</html>

@@ -1,0 +1,203 @@
+{% extends 'base.html'%}
+{%block content%}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sotish ro'yxati</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    {% if request.path != '/sotish/add/' %}
+    <div class="mt-6">
+        <a href="{% url 'sotish_add' %}" class="bg-blue-500 text-white px-4 py-2 rounded-lg">Yangi sotuv qo'shish</a>
+    </div>
+    {%endif%}
+
+    {% if request.path == '/sotish/add/' %}
+    <div class="mt-6">
+        <a href="{% url 'sotish_list' %}" class="bg-blue-500 text-white px-4 py-2 rounded-lg">Orqaga</a>
+    </div>
+    {%endif%}
+
+    {% if request.path != '/sotish/add/' %}
+    <div class="container mx-auto mt-10">
+        <h1 class="text-2xl font-semibold mb-6">Sotuvlar ro'yxati</h1> 
+
+        <table class="min-w-full table-auto bg-white shadow-lg rounded-lg">
+            <thead>
+                <tr class="bg-blue-500 text-white">
+                    <th class="px-4 py-2">Mijoz</th>
+                    <th class="px-4 py-2">Telefon raqam</th>
+                    <th class="px-4 py-2">Sana</th>
+                    <th class="px-4 py-2">Summasi</th>
+                    <th class="px-4 py-2">Holat</th>
+                    <th class="px-4 py-2">Tahrirlash</th>
+                    <th class="px-4 py-2">O`chirish</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sotish in sotish_items %}
+                    <tr>
+                        <td class="px-4 py-2">{{ sotish.mijoz }}</td>
+                        <td class="px-4 py-2">{{ sotish.mijoz_tel_raqam }}</td>
+                        <td class="px-4 py-2">{{ sotish.sana }}</td>
+                        <td class="px-4 py-2">{{ sotish.summasi }}</td>
+                        <td class="px-4 py-2">
+                            {% if sotish.summasi > 0 %}
+                                <span class="text-green-500 font-semibold">Sotilgan</span>
+                            {% else %}
+                                <span class="text-red-500 font-semibold">Sotilmagan</span>
+                            {% endif %}
+                        </td>
+                        <td><a href="{% url 'sotish_update' sotish.pk %}">Tahrirlash</a></td>
+                        <td><form method="post" action="{% url 'sotish_delete' sotish.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700">
+                                O'chirish
+                            </button>
+                        </form>
+                    </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {%endif%}
+
+    {% if request.path == '/sotish/add/' %}
+    <div class="container mx-auto mt-6">
+        <form id="sotish-form" method="POST" class="bg-white p-4 rounded-lg shadow-md space-y-4 max-w-xl mx-auto">
+            <h2 class="text-lg font-semibold text-gray-800">Sotish Formasi</h2>
+                {% csrf_token %}
+            <!-- Mijoz -->
+            <div>
+                <label for="mijoz" class="block text-gray-600">Mijoz</label>
+                <input type="text" id="mijoz" name="mijoz" class="w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-400" placeholder="Mijoz ismini kiriting" required>
+            </div>
+    
+            <!-- Mijoz Telefon -->
+            <div>
+                <label for="mijoz_tel_raqam" class="block text-gray-600">Telefon raqami</label>
+                <input type="text" id="mijoz_tel_raqam" name="mijoz_tel_raqam" class="w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-400" placeholder="Telefon raqamini kiriting" required>
+            </div>
+    
+            <!-- Sim Karta -->
+            <div>
+                <label for="sim_karta" class="block text-gray-600">Sim karta</label>
+                <input type="text" id="sim_karta" name="sim_karta" class="w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-400" placeholder="Sim kartani kiriting" required>
+            </div>
+    
+            <!-- GPS Qo'shish -->
+            <div id="gps-wrapper" class="mt-4">
+                <!-- Yangi GPS qo'shiladigan joy -->
+                <div class="flex items-center space-x-2 mt-2">
+                    <select name="gps_id[]" class="gps-select flex-grow px-3 py-2 border rounded-md focus:ring focus:ring-blue-400">
+                        <option value="">GPS tanlang</option>
+                        {% for gps in gps_list %}
+                        <option value="{{ gps.id }}">{{ gps.gps_is }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="button" class="remove-gps bg-red-500 text-white px-3 py-2 rounded-md hover:bg-red-600">-</button>
+                </div>
+            </div>
+            <button type="button" id="add-gps-btn" class="mt-2 bg-blue-500 text-white px-3 py-2 rounded-md hover:bg-blue-600">+</button>
+            
+    
+            <!-- Dasturiy Taminot -->
+            <div>
+                <label for="dasturiy_taminot" class="block text-gray-600">Dasturiy taminot</label>
+                <input type="text" id="dasturiy_taminot" name="dasturiy_taminot" class="w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-400" placeholder="Dasturiy taminotni kiriting" required>
+            </div>
+    
+            <!-- Username -->
+            <div>
+                <label for="username" class="block text-gray-600">Username</label>
+                <input type="text" id="username" name="username" class="w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-400" placeholder="Username kiriting" required>
+            </div>
+    
+            <!-- To'lov Summasi -->
+            <div>
+                <label for="tulov_sammasi" class="block text-gray-600">To'lov summasi</label>
+                <input type="number" id="tulov_sammasi" name="tulov_sammasi" class="w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-400" placeholder="To'lov summasini kiriting" required>
+            </div>
+    
+            <!-- Sana -->
+            <div>
+                <label for="sana" class="block text-gray-600">Sana</label>
+                <input type="date" id="sana" name="sana" class="w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-400" required>
+            </div>
+    
+            <!-- Umumiy Summasi -->
+            <div>
+                <label for="summasi" class="block text-gray-600">Umumiy summasi</label>
+                <input type="number" id="summasi" name="summasi" class="w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-400" placeholder="Umumiy summani kiriting" required>
+            </div>
+    
+            <!-- Submit Button -->
+            <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600">Saqlash</button>
+        </form>
+    </div>
+
+    {%endif%}
+   <script>
+    document.addEventListener("DOMContentLoaded", function () {
+    const gpsWrapper = document.getElementById("gps-wrapper");
+
+    // GPS tanlovini boshqarish
+    function updateDisabledOptions() {
+        const selects = gpsWrapper.querySelectorAll(".gps-select");
+        const selectedValues = Array.from(selects)
+            .map(select => select.value)
+            .filter(value => value !== "");
+
+        selects.forEach(select => {
+            const options = select.querySelectorAll("option");
+            options.forEach(option => {
+                if (selectedValues.includes(option.value) && option.value !== select.value) {
+                    option.disabled = true; // Tanlangan GPSlarni bloklash
+                } else {
+                    option.disabled = false; // Boshqa GPSlarni tiklash
+                }
+            });
+        });
+    }
+
+    // GPS qo'shish
+    document.getElementById("add-gps-btn").addEventListener("click", function () {
+        const newGpsRow = document.createElement("div");
+        newGpsRow.classList.add("flex", "items-center", "space-x-2", "mt-2");
+
+        newGpsRow.innerHTML = `
+            <select name="gps_id[]" class="gps-select flex-grow px-3 py-2 border rounded-md focus:ring focus:ring-blue-400">
+                <option value="">GPS tanlang</option>
+                {% for gps in gps_list %}
+                <option value="{{ gps.id }}">{{ gps.gps_is }}</option>
+                {% endfor %}
+            </select>
+            <button type="button" class="remove-gps bg-red-500 text-white px-3 py-2 rounded-md hover:bg-red-600">-</button>
+        `;
+        gpsWrapper.appendChild(newGpsRow);
+        updateDisabledOptions();
+    });
+
+    // GPS o'chirish
+    gpsWrapper.addEventListener("click", function (e) {
+        if (e.target.classList.contains("remove-gps")) {
+            const gpsRow = e.target.closest(".flex");
+            gpsWrapper.removeChild(gpsRow);
+            updateDisabledOptions();
+        }
+    });
+
+    // GPS tanlanganda, tanlanganlarini bloklash
+    gpsWrapper.addEventListener("change", function () {
+        updateDisabledOptions();
+    });
+});
+
+   </script>
+    
+    {%endblock%}
+</body>
+</html>

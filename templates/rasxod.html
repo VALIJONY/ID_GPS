@@ -1,0 +1,78 @@
+{% extends 'base.html'%}
+{%block content%}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ID GPS</title>
+</head>
+<body>
+
+    {% if request.path != '/rasxod/add/' %}
+    <a href="{% url 'rasxod_add' %}">Qo`shish</a>
+    {%endif%}
+
+    {% if request.path == '/rasxod/add/' %}
+    <a href="{% url 'rasxod_list' %}">Orqaga</a>
+    {%endif%}
+
+    {% if request.path != '/rasxod/add/' %}
+    <div class="overflow-x-auto bg-white shadow-md rounded-lg">
+        <table class="min-w-full text-sm text-left text-gray-500">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Rasxod Nomi</th>
+                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Sana</th>
+                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Summasi</th>
+                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Tahrirlash</th>
+                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">O`chirish</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                {% for rasxod in rasxod_list %}
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ rasxod.rasxod_nomi }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-500">{{ rasxod.sana }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-500">{{ rasxod.summa }}</td>
+                        <td class="px-6 py-4 text-sm text-blue-500">
+                            <a href="{% url 'rasxod_update' rasxod.pk %}" class="hover:text-blue-700">Yangilash</a>
+                            </td>
+                            <td>
+                            <a href="{% url 'rasxod_delete' rasxod.pk %}" class="hover:text-red-500">O'chirish</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {%endif%}
+
+    {% if request.path == '/rasxod/add/'%}
+    <form method="POST" class="max-w-lg mx-auto p-6 bg-white rounded-lg shadow-md">
+        {% csrf_token %}
+        <div class="mb-4">
+            <label for="rasxod_nomi" class="block text-sm font-semibold text-gray-700">Rasxod Nomi:</label>
+            <input type="text" name="rasxod_nomi" required class="mt-2 p-3 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400">
+        </div>
+        
+        <div class="mb-4">
+            <label for="sana" class="block text-sm font-semibold text-gray-700">Sana:</label>
+            <input type="date" name="sana" required class="mt-2 p-3 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400">
+        </div>
+        
+        <div class="mb-4">
+            <label for="summasi" class="block text-sm font-semibold text-gray-700">Summasi:</label>
+            <input type="number" name="summasi" required class="mt-2 p-3 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400">
+        </div>
+    
+        <button type="submit" class="w-full py-3 mt-4 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Saqlash</button>
+    </form>
+    {%endif%}
+
+    
+
+
+    {%endblock%}
+</body>
+</html>
