@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="container mx-auto max-w-2xl">
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+            <!-- Sarlavha -->
+            <button class="bg-blue-500 text-white px-4 py-2 rounded-md mb-4"><a href="{% url 'sklad-list' %}">Ortga</a></button>            
+            <form method="POST" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- GPS Container -->
+                <div id="gps-container" class="space-y-4">
+                    <div class="mb-4 flex items-center gap-3">
+                        <div class="flex-grow">
+                            <label for="gps_id" class="block text-gray-700 font-semibold mb-2">GPS ID</label>
+                            {{ form.gps_id }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Boshqa maydonlar -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="olingan_odam" class="block text-gray-700 font-semibold mb-2">Olingan odam</label>
+                        {{ form.olingan_odam }}
+                    </div>
+
+                    <div>
+                        <label for="phone" class="block text-gray-700 font-semibold mb-2">Telefon raqam</label>
+                        {{ form.tel_raqam }}
+                    </div>
+
+                    <div>
+                        <label for="summa_prixod" class="block text-gray-700 font-semibold mb-2">Summa Prixod</label>
+                        {{ form.summa_prixod }}
+                    </div>
+
+                    <div>
+                        <label for="olingan_sana" class="block text-gray-700 font-semibold mb-2">Olingan sana</label>
+                        {{ form.olingan_sana }}
+                    </div>
+                </div>
+                
+                <!-- Saqlash tugmasi -->
+                <button type="submit" 
+                    class="w-full mt-8 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 ease-in-out">
+                    Saqlash
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+   
+</script>
+{% endblock %}

@@ -77,26 +77,47 @@
     <hr>
     <ul class="nav nav-pills flex-column mb-auto">
       <li class="nav-item">
-        <a href="#" class="nav-link active" aria-current="page">Statistika</a>
+        <a href="{% url 'statistika' %}" class="nav-link {% if 'statistika' in request.path %}active{% else %}text-white{% endif %}">
+          Statistika
+        </a>
       </li>
       <li>
-        <a href="{% url 'mijozlar' %}" class="nav-link text-white">Mijozlar</a>
+        <a href="{% url 'mijozlar' %}" class="nav-link {% if 'mijozlar' in request.path %}active{% else %}text-white{% endif %}">
+          Mijozlar
+        </a>
       </li>
       <li>
-        <a href="{% url 'sklad-list' %}" class="nav-link text-white">Sklad</a>
+        <a href="{% url 'sklad-list' %}" class="nav-link {% if 'sklad' in request.path %}active{% else %}text-white{% endif %}">
+          Sklad
+        </a>
       </li>
       <li>
-        <a href="#" class="nav-link text-white">CRM</a>
+        <a href="#" class="nav-link active text-white">
+          CRM
+        </a>
       </li>
       <li>
-        <a href="{% url 'rasxod_list' %}" class="nav-link text-white">RASXOT</a>
+        <a href="{% url 'rasxod_list' %}" class="nav-link {% if 'rasxod' in request.path %}active{% else %}text-white{% endif %}">
+          RASXOT
+        </a>
       </li>
       <li>
-        <a href="{% url 'sotish_list' %}" class="nav-link text-white">Sotuv</a>
+        <a href="{% url 'sotish_list' %}" class="nav-link {% if 'sotuv' in request.path %}active{% else %}text-white{% endif %}">
+          Sotuv
+        </a>
       </li>
       <li>
-        <a href="{% url 'bugalteriya' %}" class="nav-link text-white">Bugalteriya</a>
+        <a href="{% url 'bugalteriya' %}" class="nav-link {% if 'bugalteriya' in request.path %}active{% else %}text-white{% endif %}">
+          Bugalteriya
+        </a>
       </li>
+      {% if request.user.is_staff %}
+      <li>
+        <a href="{% url 'hodim-list' %}" class="nav-link {% if 'hodim' in request.path %}active{% else %}text-white{% endif %}">
+          Hodim
+        </a>
+      </li>
+      {% endif %}
     </ul>
     <hr>
     <div class="dropdown">

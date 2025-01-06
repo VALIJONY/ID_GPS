@@ -1,23 +1,28 @@
 from django.urls import path
-from .views import Loginview,Home,LogoutView, MultiMonthBugalteriyaCreateView, MultiMonthBugalteriyaUpdateView, RasxodAddView, RasxodDeleteView, RasxodUpdateView,SkladView,SkladAddView,sklad_list,SotishListView,SotishAddView,SotishUpdateView,SotishDeleteView,RasxodListView,MijozlarView,BugalteriyaTableView
-
+from .views import Loginview,Home,LogoutView,  RasxodAddView, RasxodDeleteView, RasxodUpdateView,SkladView,SkladAddView,sklad_list,SotishListView,SotishAddView,SotishUpdateView,SotishDeleteView,RasxodListView,MijozlarView,SkladUpdateView,SkladDeleteView,UpdateBugalteriyaView,StatistikaView,BugalteriyaView,HodimCreateView,HodimUpdateView,HodimDeleteView,HodimListView
 urlpatterns = [
-   path('',Loginview.as_view(),name='login'),
+    path('',Loginview.as_view(),name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
-   path('home/',Home.as_view(),name='home'),
-   path('sklad/',SkladView.as_view(),name='sklad-list'),
-   path('sklad/add/',SkladAddView.as_view(),name="skladadd"),
-   path('sklad-filter/',sklad_list,name='filter-sklad'),
-   path('sotuv/',SotishListView.as_view(),name='sotish_list'),
-   path('sotish/add/',SotishAddView.as_view(),name='sotish_add'),
-    path('sotish/update/<int:pk>/', SotishUpdateView.as_view(), name='sotish_update'),
-    path('sotish/delete/<int:pk>/', SotishDeleteView.as_view(), name='sotish_delete'),
+    path('home/',Home.as_view(),name='home'),
+    path('sklad/',SkladView.as_view(),name='sklad-list'),
+    path('sklad/add/',SkladAddView.as_view(),name="skladadd"),
+    path('sklad-filter/',sklad_list,name='filter-sklad'),
+    path('sklad/update/<int:pk>/', SkladUpdateView.as_view(), name='sklad_update'),
+    path('sklad/delete/<int:pk>/', SkladDeleteView.as_view(), name='sklad_delete'),
+    path('sotuv/',SotishListView.as_view(),name='sotish_list'),
+    path('sotuv/add/',SotishAddView.as_view(),name='sotish_add'),
+    path('sotuv/update/<int:pk>/', SotishUpdateView.as_view(), name='sotish_update'),
+    path('sotuv/delete/<int:pk>/', SotishDeleteView.as_view(), name='sotish_delete'),
     path('rasxod/', RasxodListView.as_view(), name='rasxod_list'),
     path('rasxod/add/', RasxodAddView.as_view(), name='rasxod_add'),
     path('rasxod/update/<int:pk>/', RasxodUpdateView.as_view(), name='rasxod_update'),
     path('rasxod/delete/<int:pk>/', RasxodDeleteView.as_view(), name='rasxod_delete'),
     path('mijozlar/',MijozlarView.as_view(),name='mijozlar'),
-    path('bugalteriya/',BugalteriyaTableView.as_view(),name='bugalteriya'),
-    path('bugalteriya/create/', MultiMonthBugalteriyaCreateView.as_view(), name='bugalteriyacreate'),
-    path('bugalteriya/update/',MultiMonthBugalteriyaUpdateView.as_view(),name='bagalteriya_update')
+    path('statistika/',StatistikaView.as_view(),name='statistika'),
+    path('bugalteriya/update/<int:record_id>/', UpdateBugalteriyaView.as_view(), name='bugalteriya_update'),
+    path('bugalteriya/',BugalteriyaView.as_view(),name='bugalteriya'),
+    path('hodimlar/',HodimListView.as_view(),name='hodim-list'),
+    path('hodimlar/create/',HodimCreateView.as_view(),name='hodim-create'),
+    path('hodimlar/update/<int:pk>/',HodimUpdateView.as_view(),name='hodim-update'),
+    path('hodimlar/delete/<int:pk>/',HodimDeleteView.as_view(),name='hodim-delete'),
 ]

@@ -1,44 +1,60 @@
-{% extends 'base.html'%}
-{%block content%}
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <h1>Miozlar haqida malumotlar</h1>
-    <table class="table-auto w-full border-collapse border border-gray-300">
-        <thead>
-            <tr class="bg-gray-200">
-                <th class="border border-gray-300 px-4 py-2">Mijoz</th>
-                <th class="border border-gray-300 px-4 py-2">Telefon</th>
-                <th class="border border-gray-300 px-4 py-2">Username</th>
-                <th class="border border-gray-300 px-4 py-2">Dasturiy Ta'minot</th>
-                <th class="border border-gray-300 px-4 py-2">GPS</th>
-                <th class="border border-gray-300 px-4 py-2">GPS SIM-Karta</th>
-                <th class="border border-gray-300 px-4 py-2">To'lov Summasi</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for mijoz in mijozlar_data %}
-            <tr class="hover:bg-gray-100">
-                {% if mijoz.rowspan > 0 %}
-                <td class="border border-gray-300 px-4 py-2" rowspan="{{ mijoz.rowspan }}">{{ mijoz.mijoz }}</td>
-                <td class="border border-gray-300 px-4 py-2" rowspan="{{ mijoz.rowspan }}">{{ mijoz.tel_raqam }}</td>
-                <td class="border border-gray-300 px-4 py-2" rowspan="{{ mijoz.rowspan }}">{{ mijoz.username }}</td>
-                <td class="border border-gray-300 px-4 py-2" rowspan="{{ mijoz.rowspan }}">{{ mijoz.dasturiy_taminot }}</td>
-                {% endif %}
-                <td class="border border-gray-300 px-4 py-2">{{ mijoz.gps }}</td>
-                <td class="border border-gray-300 px-4 py-2">{{ mijoz.sim_karta }}</td>
-                {% if mijoz.rowspan > 0 %}
-                <td class="border border-gray-300 px-4 py-2" rowspan="{{ mijoz.rowspan }}">{{ mijoz.tulov_sammasi }}</td>
-                {% endif %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    
-{%endblock%}
-</body>
-</html>
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto mt-6">
+    <h1 class="text-2xl font-bold mb-6">Mijozlar ro'yxati</h1>
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white border border-gray-300">
+            <thead>
+                <tr class="bg-gray-100">
+                    <th class="px-4 py-2 border">Mijoz</th>
+                    <th class="px-4 py-2 border">Tel raqam</th>
+                    <th class="px-4 py-2 border">Username</th>
+                    <th class="px-4 py-2 border">Password</th>
+                    <th class="px-4 py-2 border">Dasturiy ta'minot</th>
+                    <th class="px-4 py-2 border">GPS ID</th>
+                    <th class="px-4 py-2 border">SIM karta</th>
+                    <th class="px-4 py-2 border">Abonent to'lov</th>
+                    <th class="px-4 py-2 border">Sana</th>
+                    <th class="px-4 py-2 border">Umumiy summa</th>
+                    <th class="px-4 py-2 border">Naqd</th>
+                    <th class="px-4 py-2 border">Bank</th>
+                    <th class="px-4 py-2 border">Qarz</th>
+                    <th class="px-4 py-2 border">Master</th>
+                    <th class="px-4 py-2 border">Master summasi</th>
+                    <th class="px-4 py-2 border">Amallar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in mijozlar_data %}
+                    <tr class="hover:bg-gray-50">
+                        {% if item.first_row %}
+                            <td class="px-4 py-2 border" rowspan="{{ item.rowspan }}">{{ item.mijoz }}</td>
+                            <td class="px-4 py-2 border" rowspan="{{ item.rowspan }}">{{ item.tel_raqam }}</td>
+                            <td class="px-4 py-2 border" rowspan="{{ item.rowspan }}">{{ item.username }}</td>
+                            <td class="px-4 py-2 border" rowspan="{{ item.rowspan }}">{{ item.password }}</td>
+                            <td class="px-4 py-2 border" rowspan="{{ item.rowspan }}">{{ item.dasturiy_taminot_nomi }}</td>
+                        {% endif %}
+                        <td class="px-4 py-2 border">{{ item.gps }}</td>
+                        <td class="px-4 py-2 border">{{ item.sim_karta }}</td>
+                        {% if item.first_row %}
+                            <td class="px-4 py-2 border" rowspan="{{ item.rowspan }}">{{ item.abonent_tulov }}</td>
+                            <td class="px-4 py-2 border" rowspan="{{ item.rowspan }}">{{ item.sana }}</td>
+                            <td class="px-4 py-2 border" rowspan="{{ item.rowspan }}">{{ item.summasi }}</td>
+                            <td class="px-4 py-2 border" rowspan="{{ item.rowspan }}">{{ item.naqd }}</td>
+                            <td class="px-4 py-2 border" rowspan="{{ item.rowspan }}">{{ item.bank_schot }}</td>
+                            <td class="px-4 py-2 border" rowspan="{{ item.rowspan }}">{{ item.karta }}</td>
+                            <td class="px-4 py-2 border" rowspan="{{ item.rowspan }}">{{ item.master }}</td>
+                            <td class="px-4 py-2 border" rowspan="{{ item.rowspan }}">{{ item.master_summasi }}</td>
+                            <td class="px-4 py-2 border" rowspan="{{ item.rowspan }}">
+                                <a href="{% url 'sotish_update' item.id %}" class="text-blue-500 hover:text-blue-700">
+                                    Tahrirlash
+                                </a>
+                            </td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

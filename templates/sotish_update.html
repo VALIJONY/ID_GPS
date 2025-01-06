@@ -1,193 +1,189 @@
-{%extends 'base.html'%}
-{%block content%}
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sotishni Tahrirlash</title>
-</head>
-<body>
-    <!-- sotish_update.html -->
-    <div class="container mx-auto mt-10 max-w-4xl">
-        <h2 class="text-xl font-bold mb-4 text-gray-800">Sotishni Yangilash</h2>
-        <form method="POST" action="{% url 'sotish_update' sotish.id %}" class="space-y-4">
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto mt-6">
+    <div class="mb-4">
+        <a href="{% url 'sotish_list' %}" class="bg-blue-500 text-white px-4 py-2 rounded-lg">Orqaga</a>
+    </div>
+
+    <form method="POST" class="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto">
             {% csrf_token %}
     
-            <!-- Mijoz -->
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label for="mijoz" class="block text-sm font-medium text-gray-700">Mijoz</label>
-                    <input type="text" name="mijoz" id="mijoz" value="{{ sotish.mijoz }}" 
-                        class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
-                </div>
-    
-                <div>
-                    <label for="mijoz_tel_raqam" class="block text-sm font-medium text-gray-700">Telefon raqami</label>
-                    <input type="text" name="mijoz_tel_raqam" id="mijoz_tel_raqam" value="{{ sotish.mijoz_tel_raqam }}" 
-                        class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
-                </div>
-            </div>
-    
-            <!-- Sim karta va dasturiy taminot -->
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label for="sim_karta" class="block text-sm font-medium text-gray-700">Sim karta</label>
-                    <input type="text" name="sim_karta" id="sim_karta" value="{{ sotish.sim_karta }}" 
-                        class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
-                </div>
-    
-                <div>
-                    <label for="dasturiy_taminot" class="block text-sm font-medium text-gray-700">Dasturiy taminot</label>
-                    <input type="text" name="dasturiy_taminot" id="dasturiy_taminot" value="{{ sotish.dasturiy_taminot }}" 
-                        class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
-                </div>
-            </div>
-    
-            <!-- Username va tulov summasi -->
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
-                    <input type="text" name="username" id="username" value="{{ sotish.username }}" 
-                        class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
-                </div>
-    
-                <div>
-                    <label for="tulov_sammasi" class="block text-sm font-medium text-gray-700">To'lov summasi</label>
-                    <input type="number" name="tulov_sammasi" id="tulov_sammasi" value="{{ sotish.tulov_sammasi }}" 
-                        class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
-                </div>
-            </div>
-    
-            <!-- Sana va Summasi -->
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label for="sana" class="block text-sm font-medium text-gray-700">Sana</label>
-                    <input type="date" name="sana" id="sana" value="{{ sotish.sana | date:'Y-m-d' }}" 
-                        class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
-                </div>
-    
-                <div>
-                    <label for="summasi" class="block text-sm font-medium text-gray-700">Summasi</label>
-                    <input type="number" name="summasi" id="summasi" value="{{ sotish.summasi }}" 
-                        class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
-                </div>
-            </div>
-    
-            <!-- Tanlangan va mavjud GPSlar -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Tanlangan GPSlar</label>
-                <ul id="selected-gps-list" class="mt-2 space-y-2">
-                    {% for gps in skladdan_olingan %}
-                    <li class="flex items-center justify-between bg-gray-100 px-4 py-2 rounded-md">
-                        <span class="gps-item" data-id="{{ gps.id }}">{{ gps.gps_is }}</span>
-                        <button type="button" class="remove-gps bg-red-500 text-white px-2 py-1 rounded" data-id="{{ gps.id }}">-</button>
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
-            
-    
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Qo'shimcha GPS tanlash</label>
-                <div class="flex items-center space-x-2 mt-2">
-                    <select id="available-gps" class="block w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
-                        <option value="" disabled selected>GPS tanlang</option>
-                        {% for gps in mavjud_gpslar %}
-                        <option value="{{ gps.id }}">{{ gps.gps_is }}</option>
+        <div class="mb-4">
+            <label class="block text-gray-700 font-medium mb-2">Mijoz</label>
+            {{ form.mijoz }}
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-gray-700 font-medium mb-2">Telefon raqam</label>
+            {{ form.mijoz_tel_raqam }}
+                    </div>
+        
+        <div id="gps-container">
+            {% for gps, sim in zip_gps_sim %}
+            <div class="mb-4 flex items-center gap-4">
+                <div class="flex-grow">
+                    <label class="block text-gray-700 font-medium mb-2">GPS ID</label>
+                    <select name="gps_id" onchange="updateDisabledOptions()" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <option value="">GPS tanlang</option>
+                        {% for g in mavjud_gpslar %}
+                            <option value="{{ g.id }}" {% if g.id == gps.id %}selected{% endif %}>{{ g.gps_id }}</option>
                         {% endfor %}
                     </select>
-                    <button type="button" id="add-gps" class="bg-blue-500 text-white px-4 py-2 rounded">+</button>
+                    </div>
+                <div class="flex-grow">
+                    <label class="block text-gray-700 font-medium mb-2">SIM karta</label>
+                    <input type="text" name="sim_karta" value="{{ sim }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
                 </div>
-            </div>
-    
-            <input type="hidden" name="gps_ids" id="gps-ids">
-    
-            <div class="flex justify-end">
-                <button type="submit" class="bg-green-500 text-white px-6 py-2 rounded shadow">Saqlash</button>
-            </div>
-        </form>
-    </div>
-    <script>
-        // Foydalanuvchi biror GPSni olib tashlasa
-        document.querySelectorAll('.remove-gps').forEach(button => {
-            button.addEventListener('click', function() {
-                const gpsId = this.getAttribute('data-id');
-                const gpsItem = this.closest('li');
-                gpsItem.remove();  // GPSni ro'yxatdan o'chirib tashlash
-    
-                // Tanlangan GPSlarni saqlash uchun post qilish
-                updateSelectedGps();
-            });
-        });
-    
-        // Tanlangan GPSlar ro'yxatini saqlash
-        function updateSelectedGps() {
-            let selectedGpsIds = [];
-            document.querySelectorAll('#selected-gps-list .gps-item').forEach(gpsItem => {
-                selectedGpsIds.push(gpsItem.getAttribute('data-id'));  // GPS idlarni olish
-            });
-    
-            // Formadagi input maydoni orqali yuborish
-            const gpsInput = document.querySelector('input[name="gps_ids"]');
-            gpsInput.value = selectedGpsIds.join(',');  // GPS idlarni vergul bilan ajratib jo'natish
-        }
-    
-        // Dastlabki tanlangan GPSlarni serverga yuborish
-        document.addEventListener('DOMContentLoaded', function() {
-            updateSelectedGps();  // Initial tanlangan GPSlar ro'yxatini formaga yuborish
-        });
-    </script>
-    
-
-
-    <script>
+                <button type="button" onclick="removeGpsField(this)" class="mt-6 bg-red-500 text-white py-2 px-4 rounded-lg">
+                    -
+                            </button>
+                        </div>
+            {% endfor %}
+                    </div>
         
-        const selectedGPSList = document.getElementById('selected-gps-list');
-        const availableGPS = document.getElementById('available-gps');
-        const addGPSButton = document.getElementById('add-gps');
-        const gpsIdsInput = document.getElementById('gps-ids');
+        <button type="button" onclick="addGpsField()" class="mb-4 bg-green-500 text-white py-2 px-4 rounded-lg">
+            + GPS qo'shish
+        </button>
+
+        <!-- Qolgan maydonlar -->
+        <div class="mb-4">
+            <label class="block text-gray-700 font-medium mb-2">Dasturiy ta'minot</label>
+            {{ form.dasturiy_taminot }}
+                    </div>
+
+        <div class="mb-4">
+            <label class="block text-gray-700 font-medium mb-2">Username</label>
+            {{ form.username }}
+                </div>
+        
+        <div class="mb-4">
+            <label class="block text-gray-700 font-medium mb-2">Password</label>
+            {{ form.password }}
+                    </div>
+        
+        <div class="mb-4">
+            <label class="block text-gray-700 font-medium mb-2">Abonent to'lov</label>
+            {{ form.abonent_tulov }}
+                    </div>
+
+        <div class="mb-4">
+            <label class="block text-gray-700 font-medium mb-2">Sana</label>
+            {{ form.sana }}
+                </div>
+        
+        <div class="mb-4">
+            <label class="block text-gray-700 font-medium mb-2">Umumiy summa</label>
+            {{ form.summasi }}
+                    </div>
+        
+        <div class="mb-4">
+            <label class="block text-gray-700 font-medium mb-2">Naqd</label>
+            {{ form.naqd }}
+                    </div>
+
+        <div class="mb-4">
+            <label class="block text-gray-700 font-medium mb-2">Bank hisob</label>
+            {{ form.bank_schot }}
+                </div>
+        
+        <div class="mb-4">
+            <label class="block text-gray-700 font-medium mb-2">Karta</label>
+            {{ form.karta }}
+                    </div>
+                
+        <div class="mb-4">
+            <label class="block text-gray-700 font-medium mb-2">Master</label>
+            {{ form.master }}
+                        </div>
+
+        <div class="mb-4">
+            <label class="block text-gray-700 font-medium mb-2">Master summasi</label>
+            {{ form.master_summasi }}
+                </div>
+        
+        <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-lg">
+                        Saqlash
+                    </button>
+    </form>
+                </div>
+
+            <script>
+function updateDisabledOptions() {
+    const container = document.getElementById('gps-container');
+    const selects = container.querySelectorAll('select[name="gps_id"]');
     
-        addGPSButton.addEventListener('click', () => {
-            const selectedOption = availableGPS.options[availableGPS.selectedIndex];
-            if (!selectedOption.value) return;
-    
-            // Qo‘shilgan GPSni ro‘yxatdan olib tashlash
-            const li = document.createElement('li');
-            li.classList.add('flex', 'items-center', 'space-x-4');
-            li.innerHTML = `
-                <span>${selectedOption.text}</span>
-                <button type="button" class="remove-gps bg-red-500 text-white px-2 py-1 rounded" data-id="${selectedOption.value}">-</button>
-            `;
-            selectedGPSList.appendChild(li);
-    
-            selectedOption.remove(); // Ro‘yxatdan o‘chirish
-    
-            updateGPSIds();
-        });
-    
-        selectedGPSList.addEventListener('click', (e) => {
-            if (e.target.classList.contains('remove-gps')) {
-                const li = e.target.closest('li');
-                const id = e.target.dataset.id;
-    
-                // GPSni ro‘yxatga qaytarish
-                const option = document.createElement('option');
-                option.value = id;
-                option.text = li.querySelector('span').innerText;
-                availableGPS.appendChild(option);
-    
-                li.remove(); // Qo‘shilgan ro‘yxatdan olib tashlash
-                updateGPSIds();
+    // Har bir select uchun tanlangan qiymatlarni yig'ish
+    const selectedValues = new Map();
+    selects.forEach(select => {
+        if (select.value) {
+            selectedValues.set(select.value, select);
+        }
+    });
+
+    // Har bir select uchun optionlarni yangilash
+    selects.forEach(currentSelect => {
+        Array.from(currentSelect.options).forEach(option => {
+            if (option.value === "") return; // "GPS tanlang" opsiyasini o'tkazib yuborish
+
+            const selectWithValue = selectedValues.get(option.value);
+            if (selectWithValue) {
+                // Agar bu option qayerdadir tanlangan bo'lsa
+                if (selectWithValue === currentSelect) {
+                    // Agar aynan shu selectda tanlangan bo'lsa
+                    option.hidden = true;
+                    option.disabled = false;
+                    if (option.value === currentSelect.value) {
+                        option.hidden = false; // Tanlangan qiymatni ko'rsatish
+                    }
+                } else {
+                    // Agar boshqa selectda tanlangan bo'lsa
+                    option.disabled = true;
+                    option.hidden = false;
+                }
+            } else {
+                // Agar hech qayerda tanlanmagan bo'lsa
+                option.disabled = false;
+                option.hidden = false;
             }
         });
-    
-        function updateGPSIds() {
-            const ids = Array.from(selectedGPSList.querySelectorAll('.remove-gps'))
-                .map(btn => btn.dataset.id);
-            gpsIdsInput.value = ids.join(',');
-        }
-    </script>
+    });
+}
 
-{%endblock%}
-</body>
-</html>
+function addGpsField() {
+    const container = document.getElementById('gps-container');
+    const newField = document.createElement('div');
+    newField.className = 'mb-4 flex items-center gap-4';
+    
+    newField.innerHTML = `
+        <div class="flex-grow">
+            <label class="block text-gray-700 font-medium mb-2">GPS ID</label>
+            <select name="gps_id" onchange="updateDisabledOptions()" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                <option value="">GPS tanlang</option>
+                {% for g in mavjud_gpslar %}
+                    <option value="{{ g.id }}">{{ g.gps_id }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="flex-grow">
+            <label class="block text-gray-700 font-medium mb-2">SIM karta</label>
+            <input type="text" name="sim_karta" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+        </div>
+        <button type="button" onclick="removeGpsField(this)" class="mt-6 bg-red-500 text-white py-2 px-4 rounded-lg">
+                            -
+                        </button>
+                    `;
+    
+    container.appendChild(newField);
+    updateDisabledOptions();
+}
+
+function removeGpsField(button) {
+    button.closest('.mb-4').remove();
+    updateDisabledOptions();
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    updateDisabledOptions();
+});
+            </script>
+{% endblock %}

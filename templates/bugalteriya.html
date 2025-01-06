@@ -1,116 +1,121 @@
-{%extends 'base.html' %}
-{%block content%}
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bugalteriya Jadvali</title>
-</head>
-<body class="bg-gray-100">
-    <a href="{% url 'bagalteriya_update' %}">yangilash</a>
-    <a href="{% url 'bugalteriyacreate' %}">Yaratish</a>
-    <div class="container mx-auto p-6">
-        <h1 class="text-2xl font-bold mb-4">Bugalteriya Jadvali</h1>
-        
-        <form method="get" class="mb-4">
-            <label for="yil" class="mr-2 font-medium">Yil:</label>
-            <input type="number" id="yil" name="yil" class="border rounded p-1" value="{{ yil }}">
-            <button type="submit" class="bg-blue-500 text-white rounded px-4 py-1 ml-2">Filter</button>
-        </form>
-
-        <table class="table-auto w-full bg-white shadow-md rounded border">
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto mt-6">
+    <h1 class="text-2xl font-bold mb-6">Bugalteriya</h1>
+    
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white border border-gray-300">
             <thead>
-                <tr class="bg-gray-200">
-                    <th class="p-2 border">Mijoz</th>
-                    <th class="p-2 border">GPS ID</th>
+                <tr class="bg-gray-100">
+                    <th class="px-4 py-2 border">Mijoz</th>
+                    <th class="px-4 py-2 border">GPS ID</th>
                     {% for oy in oylar %}
-                        <th class="p-2 border text-center" colspan="2">{{ oy }}</th>
+                    <th class="px-4 py-2 border" colspan="2">{{ oy }}</th>
                     {% endfor %}
                 </tr>
-                <tr class="bg-gray-200">
-                    <th></th>
-                    <th></th>
-                    {% for oy in oylar %}
-                        <th class="p-2 border text-center">Abonent To'lov</th>
-                        <th class="p-2 border text-center">Sim Karta To'lov</th>
+                <tr class="bg-gray-50">
+                    <th colspan="2"></th>
+                    {% for _ in oylar %}
+                    <th class="px-2 py-1 border text-sm">Abonent</th>
+                    <th class="px-2 py-1 border text-sm">SIM</th>
                     {% endfor %}
                 </tr>
             </thead>
             <tbody>
-                {% for satr in jadval %}
-                    <tr>
-                        <td class="p-2 border">{{ satr.mijoz_ismi }}</td>
-                        <td class="p-2 border">{{ satr.gps_id }}</td>
-                        {% for oy in satr.oylar %}
-                        <td class="p-2 border text-center">
-                            {% if oy.abonent_tolov %}
-                            ✅
-                            {% else %}
-                            ❌
+                {% for sotish in sotish_data %}
+                    {% for gps_item in sotish.gps_data %}
+                        <tr class="hover:bg-gray-50">
+                            {% if forloop.first %}
+                            <td class="px-4 py-2 border" rowspan="{{ sotish.gps_data|length }}">
+                                {{ sotish.sotish.mijoz }}
+                            </td>
                             {% endif %}
-                        </td>
-                        <td class="p-2 border text-center">
-                            {% if oy.sim_karta_tolov %}
-                            ✅
-                            {% else %}
-                            ❌
-                            {% endif %}
-                        </td>
+                            <td class="px-4 py-2 border">{{ gps_item.gps.gps_id }}</td>
+                            {% for tolov in gps_item.oylar %}
+                                <td class="px-2 py-1 border text-center">
+                                    <form method="post" action="{% url 'bugalteriya_update' tolov.id %}" class="inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="abonent_tolov" value="1">
+                                        <button type="submit" 
+                                                class="w-8 h-8 rounded-full text-center hover:bg-gray-100 flex items-center justify-center focus:outline-none">
+                                            {% if tolov.abonent_tolov %}
+                                            <span class="text-xl text-center text-green-500">✅</span>
+                                            {% else %}
+                                            <span class="text-xl text-red-500">❌</span>
+                                            {% endif %}
+                                        </button>
+                                    </form>
+                                </td>
+                                <td class="px-2 py-1 border text-center">
+                                    <form method="post" action="{% url 'bugalteriya_update' tolov.id %}" class="inline text-center">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="sim_karta_tolov" value="1">
+                                        <button type="submit" 
+                                                class="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center focus:outline-none">
+                                            {% if tolov.sim_karta_tolov %}
+                                            <span class="text-xl text-green-500">✅</span>
+                                            {% else %}
+                                            <span class="text-xl text-red-500">❌</span>
+                                            {% endif %}
+                                        </button>
+                                    </form>
+                                </td>
+                            {% endfor %}
+                        </tr>
                     {% endfor %}
-                    
-                    </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-
-{% if request.path == '/bugalteriya/create/' %}
-<div class="max-w-xl mx-auto bg-white p-6 rounded-lg shadow">
-    <h1 class="text-2xl font-bold mb-4">Bir nechta oylik Bugalteriya Yozuvlarini Yaratish</h1>
-    <form method="post">
-        {% csrf_token %}
-        
-        <!-- Sotishni tanlash -->
-        <label for="sotish" class="block mb-2 font-semibold">Mijoz (Sotish):</label>
-        <select id="sotish" name="sotish" class="border p-2 rounded w-full mb-4">
-            {% for sotish in sotishlar %}
-                <option value="{{ sotish.id }}">{{ sotish }}</option>
-            {% endfor %}
-        </select>
-
-        <!-- Oyni tanlash -->
-        <label class="block mb-2 font-semibold">Oylardan bir nechtasini tanlang:</label>
-        <div class="grid grid-cols-3 gap-2 mb-4">
-            {% for oy in oylar %}
-                <label class="flex items-center space-x-2">
-                    <input type="checkbox" name="oylar" value="{{ oy }}">
-                    <span>{{ oy }}</span>
-                </label>
-            {% endfor %}
-        </div>
-
-        <!-- Yilni tanlash -->
-        <label for="yil" class="block mb-2 font-semibold">Yil:</label>
-        <input type="number" id="yil" name="yil" class="border p-2 rounded w-full mb-4" value="{{ now.year }}" min="2000" max="{{ now.year }}">
-
-        <!-- Abonent to'lovi va Sim karta to'lovi -->
-        <label class="flex items-center space-x-2 mb-4">
-            <input type="checkbox" name="abonent_tolov">
-            <span>Abonent to‘lovi</span>
-        </label>
-        <label class="flex items-center space-x-2 mb-4">
-            <input type="checkbox" name="sim_karta_tolov">
-            <span>Sim karta uchun to‘lovi</span>
-        </label>
-
-        <!-- Formni yuborish -->
-        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-            Saqlash
-        </button>
-    </form>
 </div>
-{%endif%}
 
- {%endblock%}   
-</body>
-</html>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const forms = document.querySelectorAll('form');
+    
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const button = form.querySelector('button');
+            const span = button.querySelector('span');
+            
+            // Agar belgilangan va foydalanuvchi superuser bo'lmasa, o'zgartirmaslik
+            if (span.textContent === '✅' && !{{ request.user.is_superuser|yesno:"true,false" }}) {
+                alert("Faqat superuser to'lovni qayta o'zgartira oladi!");
+                return;
+            }
+            
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value,
+                },
+                body: new FormData(form)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // To'lov holatini o'zgartirish
+                    if (span.textContent === '❌') {
+                        span.textContent = '✅';
+                        span.classList.remove('text-red-500');
+                        span.classList.add('text-green-500');
+                    } else {
+                        span.textContent = '❌';
+                        span.classList.remove('text-green-500');
+                        span.classList.add('text-red-500');
+                    }
+                } else {
+                    alert(data.message || 'Xatolik yuz berdi!');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Xatolik yuz berdi!');
+            });
+        });
+    });
+});
+</script>
+{% endblock %}
