@@ -26,7 +26,7 @@
                     <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Rasxod Nomi</th>
                     <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Sana</th>
                     <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Summasi</th>
-                    {% if request.user_is_superuser %}
+                    {% if request.user.is_superuser %}
                     <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Tahrirlash</th>
                     <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">O`chirish</th>
                     {%endif%}
