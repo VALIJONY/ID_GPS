@@ -6,113 +6,155 @@
     </div>
 
     <form method="POST" class="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto">
-            {% csrf_token %}
-    
-        <div class="mb-4">
-            <label class="block text-gray-700 font-medium mb-2">Mijoz</label>
-            {{ form.mijoz }}
+        {% csrf_token %}
+        
+        <!-- Mijoz ma'lumotlari -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Mijoz</label>
+                <input type="text" name="mijoz" value="{{ sotish.mijoz }}" required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+            </div>
+            
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Telefon raqam</label>
+                <input type="text" name="mijoz_tel_raqam" value="{{ sotish.mijoz_tel_raqam }}"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+            </div>
         </div>
 
-        <div class="mb-4">
-            <label class="block text-gray-700 font-medium mb-2">Telefon raqam</label>
-            {{ form.mijoz_tel_raqam }}
-                    </div>
-        
+        <!-- GPS va SIM karta -->
         <div id="gps-container">
-            {% for gps, sim in zip_gps_sim %}
+            {% for pair in gps_sim_pairs %}
             <div class="mb-4 flex items-center gap-4">
                 <div class="flex-grow">
                     <label class="block text-gray-700 font-medium mb-2">GPS ID</label>
                     <select name="gps_id" onchange="updateDisabledOptions()" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
                         <option value="">GPS tanlang</option>
                         {% for g in mavjud_gpslar %}
-                            <option value="{{ g.id }}" {% if g.id == gps.id %}selected{% endif %}>{{ g.gps_id }}</option>
+                            <option value="{{ g.id }}" {% if g.id == pair.gps.id %}selected{% endif %}>{{ g.gps_id }}</option>
                         {% endfor %}
                     </select>
-                    </div>
+                </div>
                 <div class="flex-grow">
                     <label class="block text-gray-700 font-medium mb-2">SIM karta</label>
-                    <input type="text" name="sim_karta" value="{{ sim }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    <input type="text" name="sim_karta" value="{{ pair.sim }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
                 </div>
                 <button type="button" onclick="removeGpsField(this)" class="mt-6 bg-red-500 text-white py-2 px-4 rounded-lg">
                     -
-                            </button>
-                        </div>
+                </button>
+            </div>
             {% endfor %}
-                    </div>
+        </div>
         
         <button type="button" onclick="addGpsField()" class="mb-4 bg-green-500 text-white py-2 px-4 rounded-lg">
             + GPS qo'shish
         </button>
 
-        <!-- Qolgan maydonlar -->
+        <!-- Dasturiy ta'minot -->
         <div class="mb-4">
             <label class="block text-gray-700 font-medium mb-2">Dasturiy ta'minot</label>
-            {{ form.dasturiy_taminot }}
-                    </div>
+            <select name="dasturiy_taminot" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                {% for dt in dasturiy_taminot %}
+                    <option value="{{ dt.id }}" {% if dt.id == sotish.dasturiy_taminot.id %}selected{% endif %}>
+                        {{ dt.dasturiy_taminot_nomi }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
 
-        <div class="mb-4">
-            <label class="block text-gray-700 font-medium mb-2">Username</label>
-            {{ form.username }}
-                </div>
-        
-        <div class="mb-4">
-            <label class="block text-gray-700 font-medium mb-2">Password</label>
-            {{ form.password }}
-                    </div>
-        
-        <div class="mb-4">
-            <label class="block text-gray-700 font-medium mb-2">Abonent to'lov</label>
-            {{ form.abonent_tulov }}
-                    </div>
+        <!-- Login ma'lumotlari -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Username</label>
+                <input type="text" name="username" value="{{ sotish.username }}"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+            </div>
+            
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Password</label>
+                <input type="text" name="password" value="{{ sotish.password }}"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+            </div>
+        </div>
 
-        <div class="mb-4">
+        <!-- To'lov ma'lumotlari -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Umumiy summa</label>
+                <input type="number" name="summasi" value="{{ sotish.summasi }}" required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg" 
+                    onchange="calculateQarzdorlik()">
+            </div>
+            
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Naqd</label>
+                <input type="number" name="naqd" value="{{ sotish.naqd }}"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                    onchange="calculateQarzdorlik()">
+            </div>
+            
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Bank hisob</label>
+                <input type="number" name="bank_schot" value="{{ sotish.bank_schot }}"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                    onchange="calculateQarzdorlik()">
+            </div>
+            
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Qarz</label>
+                <input type="text" name="karta" id="karta" value="{{ sotish.karta }}" readonly
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50">
+            </div>
+            
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Abonent to'lov</label>
+                <input type="number" name="abonent_tulov" value="{{ sotish.abonent_tulov }}" required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+            </div>
+        </div>
+
+        <!-- Master ma'lumotlari -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Master</label>
+                <input type="text" name="master" value="{{ sotish.master }}"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+            </div>
+            
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Master summasi</label>
+                <input type="number" name="master_summasi" value="{{ sotish.master_summasi }}"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+            </div>
+        </div>
+
+        <!-- Sana -->
+        <div class="mb-6">
             <label class="block text-gray-700 font-medium mb-2">Sana</label>
-            {{ form.sana }}
-                </div>
-        
-        <div class="mb-4">
-            <label class="block text-gray-700 font-medium mb-2">Umumiy summa</label>
-            {{ form.summasi }}
-                    </div>
-        
-        <div class="mb-4">
-            <label class="block text-gray-700 font-medium mb-2">Naqd</label>
-            {{ form.naqd }}
-                    </div>
+            <input type="date" name="sana" value="{{ sotish.sana|date:'Y-m-d' }}" required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+        </div>
 
-        <div class="mb-4">
-            <label class="block text-gray-700 font-medium mb-2">Bank hisob</label>
-            {{ form.bank_schot }}
-                </div>
-        
-        <div class="mb-4">
-            <label class="block text-gray-700 font-medium mb-2">Karta</label>
-            {{ form.karta }}
-                    </div>
-                
-        <div class="mb-4">
-            <label class="block text-gray-700 font-medium mb-2">Master</label>
-            {{ form.master }}
-                        </div>
-
-        <div class="mb-4">
-            <label class="block text-gray-700 font-medium mb-2">Master summasi</label>
-            {{ form.master_summasi }}
-                </div>
-        
-        <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-lg">
-                        Saqlash
-                    </button>
+        <!-- Tugmalar -->
+        <div class="flex justify-end space-x-4">
+            <a href="{% url 'sotish_list' %}" 
+                class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                Bekor qilish
+            </a>
+            <button type="submit"
+                class="px-4 py-2 bg-blue-600 text-white rounded-md shadow-sm hover:bg-blue-700">
+                Saqlash
+            </button>
+        </div>
     </form>
-                </div>
+</div>
 
-            <script>
+<script>
 function updateDisabledOptions() {
     const container = document.getElementById('gps-container');
     const selects = container.querySelectorAll('select[name="gps_id"]');
     
-    // Har bir select uchun tanlangan qiymatlarni yig'ish
     const selectedValues = new Map();
     selects.forEach(select => {
         if (select.value) {
@@ -120,33 +162,31 @@ function updateDisabledOptions() {
         }
     });
 
-    // Har bir select uchun optionlarni yangilash
     selects.forEach(currentSelect => {
         Array.from(currentSelect.options).forEach(option => {
-            if (option.value === "") return; // "GPS tanlang" opsiyasini o'tkazib yuborish
+            if (option.value === "") return;
 
             const selectWithValue = selectedValues.get(option.value);
             if (selectWithValue) {
-                // Agar bu option qayerdadir tanlangan bo'lsa
                 if (selectWithValue === currentSelect) {
-                    // Agar aynan shu selectda tanlangan bo'lsa
-                    option.hidden = true;
                     option.disabled = false;
-                    if (option.value === currentSelect.value) {
-                        option.hidden = false; // Tanlangan qiymatni ko'rsatish
-                    }
                 } else {
-                    // Agar boshqa selectda tanlangan bo'lsa
                     option.disabled = true;
-                    option.hidden = false;
                 }
             } else {
-                // Agar hech qayerda tanlanmagan bo'lsa
                 option.disabled = false;
-                option.hidden = false;
             }
         });
     });
+}
+
+function calculateQarzdorlik() {
+    const summasi = parseFloat(document.querySelector('input[name="summasi"]').value) || 0;
+    const naqd = parseFloat(document.querySelector('input[name="naqd"]').value) || 0;
+    const bank = parseFloat(document.querySelector('input[name="bank_schot"]').value) || 0;
+    
+    const qarzdorlik = summasi - (naqd + bank);
+    document.getElementById('karta').value = qarzdorlik;
 }
 
 function addGpsField() {
@@ -169,9 +209,9 @@ function addGpsField() {
             <input type="text" name="sim_karta" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
         </div>
         <button type="button" onclick="removeGpsField(this)" class="mt-6 bg-red-500 text-white py-2 px-4 rounded-lg">
-                            -
-                        </button>
-                    `;
+            -
+        </button>
+    `;
     
     container.appendChild(newField);
     updateDisabledOptions();
@@ -182,8 +222,9 @@ function removeGpsField(button) {
     updateDisabledOptions();
 }
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function() {
     updateDisabledOptions();
+    calculateQarzdorlik();
 });
-            </script>
+</script>
 {% endblock %}

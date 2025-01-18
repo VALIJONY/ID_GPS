@@ -46,7 +46,7 @@ class Sklad(models.Model):
     sotildi_sotilmadi = models.BooleanField(null=True)
 
     def __str__(self):
-        return f'{self.gps_id} - {self.olingan_odam}'
+        return f'{self.gps_id}'
 
 # Rasxod Model
 class Rasxod(models.Model):
@@ -108,3 +108,7 @@ class Bugalteriya(models.Model):
     def __str__(self):
         return f"{self.sotish} - {self.gps} - {self.oy} {self.yil}"
 
+class Note(models.Model):
+    izoh=models.TextField()
+    user=models.ForeignKey(CustomUser,on_delete=models.CASCADE)
+    sana=models.DateField(default=datetime.now())

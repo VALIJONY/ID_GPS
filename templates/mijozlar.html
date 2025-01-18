@@ -21,7 +21,6 @@
                     <th class="px-4 py-2 border">Qarz</th>
                     <th class="px-4 py-2 border">Master</th>
                     <th class="px-4 py-2 border">Master summasi</th>
-                    <th class="px-4 py-2 border">Amallar</th>
                 </tr>
             </thead>
             <tbody>
@@ -45,11 +44,7 @@
                             <td class="px-4 py-2 border" rowspan="{{ item.rowspan }}">{{ item.karta }}</td>
                             <td class="px-4 py-2 border" rowspan="{{ item.rowspan }}">{{ item.master }}</td>
                             <td class="px-4 py-2 border" rowspan="{{ item.rowspan }}">{{ item.master_summasi }}</td>
-                            <td class="px-4 py-2 border" rowspan="{{ item.rowspan }}">
-                                <a href="{% url 'sotish_update' item.id %}" class="text-blue-500 hover:text-blue-700">
-                                    Tahrirlash
-                                </a>
-                            </td>
+                            
                         {% endif %}
                     </tr>
                 {% endfor %}

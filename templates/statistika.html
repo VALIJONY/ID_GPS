@@ -1,148 +1,145 @@
-{%extends 'base.html' %}
-{%block content%}
-<div class="container mx-auto mt-6 px-4">
-    <h1 class="text-2xl font-bold mb-6">{{ current_month }} {{ current_year }} statistikasi</h1>
-    
-    <div class="overflow-x-auto">
-        <table class="min-w-full bg-white border border-gray-300">
-            <thead>
-                <tr class="bg-gray-100">
-                    <th class="px-4 py-2 border">Ko'rsatkich</th>
-                    <th class="px-4 py-2 border">{{ current_month }}</th>
-                    {% for oy in oylar %}
-                        {% if oy != current_month %}
-                        <th class="px-4 py-2 border">{{ oy }}</th>
-                        {% endif %}
-                    {% endfor %}
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Abonentlar statistikasi -->
-                <tr>
-                    <td class="px-4 py-2 border">Oldingi oydagi aktiv abonentlar soni</td>
-                    <td class="px-4 py-2 border">{{ stats.oldingidagi_aktiv }}</td>
-                    {% for oy in oylar %}
-                        {% if oy != current_month %}
-                        <td class="px-4 py-2 border"></td>
-                        {% endif %}
-                    {% endfor %}
-                </tr>
-                <tr>
-                    <td class="px-4 py-2 border">Shu oyda qo'shilganlar soni</td>
-                    <td class="px-4 py-2 border">{{ stats.qoshilganlar }}</td>
-                    {% for oy in oylar %}
-                        {% if oy != current_month %}
-                        <td class="px-4 py-2 border"></td>
-                        {% endif %}
-                    {% endfor %}
-                </tr>
-                <tr>
-                    <td class="px-4 py-2 border">Jami aktivniylar soni</td>
-                    <td class="px-4 py-2 border">{{ stats.jami_aktiv }}</td>
-                    {% for oy in oylar %}
-                        {% if oy != current_month %}
-                        <td class="px-4 py-2 border"></td>
-                        {% endif %}
-                    {% endfor %}
-                </tr>
+{% extends 'base.html' %}
+{% load custom_filters %}
 
-                <!-- To'lovlar statistikasi -->
-                <tr>
-                    <td class="px-4 py-2 border">Shu oyda aban plata to'lamaganlar</td>
-                    <td class="px-4 py-2 border">{{ stats.tolamaganlar }}</td>
-                    {% for oy in oylar %}
-                        {% if oy != current_month %}
-                        <td class="px-4 py-2 border"></td>
-                        {% endif %}
-                    {% endfor %}
-                </tr>
-                <tr>
-                    <td class="px-4 py-2 border">Jami to'lamay yurganlar soni</td>
-                    <td class="px-4 py-2 border">{{ stats.jami_tolamaganlar }}</td>
-                    {% for oy in oylar %}
-                        {% if oy != current_month %}
-                        <td class="px-4 py-2 border"></td>
-                        {% endif %}
-                    {% endfor %}
-                </tr>
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Sarlavha va Filtrlar -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-3xl font-bold text-gray-900">
+                    {{ current_year }} yil statistikasi
+                </h1>
+                <div class="flex space-x-4">
+                    <select name="year" class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        {% for yil in yillar %}
+                        <option value="{{ yil }}" {% if yil == current_year %}selected{% endif %}>{{ yil }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
 
-                <!-- GPS statistikasi -->
-                <tr>
-                    <td class="px-4 py-2 border">O'tgan oydan skladda bor GPS lar soni</td>
-                    <td class="px-4 py-2 border">{{ stats.sklad_gps }}</td>
-                    {% for oy in oylar %}
-                        {% if oy != current_month %}
-                        <td class="px-4 py-2 border"></td>
-                        {% endif %}
+        <!-- Statistika kartlari -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Abonentlar</h3>
+                <div class="space-y-4">
+                    {% for month_num, stats in monthly_stats.items %}
+                    <div class="border-t pt-4 first:border-t-0 first:pt-0">
+                        <h4 class="font-medium text-gray-700 mb-2">{{ stats.oy }}</h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Oldingi oydan aktiv:</span>
+                                <span class="font-medium">{{ stats.abonent.oldingidagi_aktiv }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Oyda qo'shilgan:</span>
+                                <span class="font-medium text-green-600">+{{ stats.abonent.oylik_qoshilgan }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Jami aktiv:</span>
+                                <span class="font-medium text-blue-600">{{ stats.abonent.jami_aktiv }}</span>
+                            </div>
+                        </div>
+                    </div>
                     {% endfor %}
-                </tr>
-                <tr>
-                    <td class="px-4 py-2 border">Shu oyda sotib olingan gps lar soni</td>
-                    <td class="px-4 py-2 border">{{ stats.sotilgan_gps }}</td>
-                    {% for oy in oylar %}
-                        {% if oy != current_month %}
-                        <td class="px-4 py-2 border"></td>
-                        {% endif %}
-                    {% endfor %}
-                </tr>
-                <tr>
-                    <td class="px-4 py-2 border">Shu paytgacha jami sotilgan gpas lar soni</td>
-                    <td class="px-4 py-2 border">{{ stats.jami_sotilgan }}</td>
-                    {% for oy in oylar %}
-                        {% if oy != current_month %}
-                        <td class="px-4 py-2 border"></td>
-                        {% endif %}
-                    {% endfor %}
-                </tr>
-                <tr>
-                    <td class="px-4 py-2 border">Shu oyda olingan sim kartalar soni</td>
-                    <td class="px-4 py-2 border">{{ stats.sim_karta }}</td>
-                    {% for oy in oylar %}
-                        {% if oy != current_month %}
-                        <td class="px-4 py-2 border"></td>
-                        {% endif %}
-                    {% endfor %}
-                </tr>
+                </div>
+            </div>
 
-                <!-- Summalar statistikasi -->
-                <tr>
-                    <td class="px-4 py-2 border">Aktiv abonentlardan jami tushgan summalar img</td>
-                    <td class="px-4 py-2 border">{{ stats.img_summa|floatformat:0 }}</td>
-                    {% for oy in oylar %}
-                        {% if oy != current_month %}
-                        <td class="px-4 py-2 border"></td>
-                        {% endif %}
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">To'lovlar</h3>
+                <div class="space-y-4">
+                    {% for month_num, stats in monthly_stats.items %}
+                    <div class="border-t pt-4 first:border-t-0 first:pt-0">
+                        <h4 class="font-medium text-gray-700 mb-2">{{ stats.oy }}</h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Oyda to'lamaganlar:</span>
+                                <span class="font-medium text-red-600">{{ stats.tolov.oylik_tolamaganlar }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Jami to'lamaganlar:</span>
+                                <span class="font-medium text-red-600">{{ stats.tolov.jami_tolamaganlar }}</span>
+                            </div>
+                        </div>
+                    </div>
                     {% endfor %}
-                </tr>
-                <tr>
-                    <td class="px-4 py-2 border">Aktiv abonentlardan jami tushgan summalar sinotrack</td>
-                    <td class="px-4 py-2 border">{{ stats.sinotrack_summa|floatformat:0 }}</td>
-                    {% for oy in oylar %}
-                        {% if oy != current_month %}
-                        <td class="px-4 py-2 border"></td>
-                        {% endif %}
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">GPS va SIM</h3>
+                <div class="space-y-4">
+                    {% for month_num, stats in monthly_stats.items %}
+                    <div class="border-t pt-4 first:border-t-0 first:pt-0">
+                        <h4 class="font-medium text-gray-700 mb-2">{{ stats.oy }}</h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">O'tgan oy skladdagi:</span>
+                                <span class="font-medium">{{ stats.gps.otgan_oy_sklad }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Hozir skladda bor:</span>
+                                <span class="font-medium">{{ stats.gps.hozir_skladda_bor }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Oyda sotilgan:</span>
+                                <span class="font-medium text-green-600">{{ stats.gps.oylik_sotilgan }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Jami sotilgan:</span>
+                                <span class="font-medium text-blue-600">{{ stats.gps.jami_sotilgan }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">SIM kartalar:</span>
+                                <span class="font-medium">{{ stats.sim.oylik }}</span>
+                            </div>
+                        </div>
+                    </div>
                     {% endfor %}
-                </tr>
-                <tr>
-                    <td class="px-4 py-2 border">Shu oyda aban plataga to'langan summalar</td>
-                    <td class="px-4 py-2 border">{{ stats.abonent_summa|floatformat:0 }}</td>
-                    {% for oy in oylar %}
-                        {% if oy != current_month %}
-                        <td class="px-4 py-2 border"></td>
-                        {% endif %}
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Summalar</h3>
+                <div class="space-y-4">
+                    {% for month_num, stats in monthly_stats.items %}
+                    <div class="border-t pt-4 first:border-t-0 first:pt-0">
+                        <h4 class="font-medium text-gray-700 mb-2">{{ stats.oy }}</h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">IMG tushum:</span>
+                                <span class="font-medium text-green-600">{{ stats.summa.img.jami|floatformat:0 }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Sinotrack tushum:</span>
+                                <span class="font-medium text-green-600">{{ stats.summa.sinotrack.jami|floatformat:0 }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Abonent to'lov:</span>
+                                <span class="font-medium text-blue-600">{{ stats.summa.oylik_abonent|floatformat:0 }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">IMG abonent:</span>
+                                <span class="font-medium text-blue-600">{{ stats.summa.img.abonent|floatformat:0 }}</span>
+                            </div>
+                        </div>
+                    </div>
                     {% endfor %}
-                </tr>
-                <tr>
-                    <td class="px-4 py-2 border">img ga to'langan aban plata</td>
-                    <td class="px-4 py-2 border">{{ stats.img_abonent|floatformat:0 }}</td>
-                    {% for oy in oylar %}
-                        {% if oy != current_month %}
-                        <td class="px-4 py-2 border"></td>
-                        {% endif %}
-                    {% endfor %}
-                </tr>
-            </tbody>
-        </table>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const yearSelect = document.querySelector('select[name="year"]');
+        
+        yearSelect.addEventListener('change', function() {
+            window.location.href = `?year=${yearSelect.value}`;
+        });
+    });
+</script>
 {% endblock %}

@@ -1,0 +1,229 @@
+{%extends 'base.html' %}
+{% block content%}
+{% if not is_edit and request.path != '/note/add/' %}
+    <div class="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-12">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-white rounded-xl shadow-lg p-6 sm:p-8">
+                <div class="flex justify-between items-center mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900">Eslatmalar</h1>
+                    <a href="{% url 'note-add' %}" 
+                       class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg 
+                              hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 
+                              transition-all duration-300 ease-in-out transform hover:-translate-y-0.5">
+                        <i class="fas fa-plus mr-2"></i>Yangi eslatma
+                    </a>
+                </div>
+
+                <div class="space-y-6">
+                    {% for note in notes %}
+                        <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md p-6 
+                                  transform transition-all duration-300 ease-in-out hover:scale-[1.01]">
+                            <div class="flex justify-between items-start space-x-4">
+                                <div class="flex-grow">
+                                    <div class="flex items-center space-x-2 mb-3">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                            {{ note.user }}
+                                        </span>
+                                        <span class="text-sm text-gray-500">
+                                            {{ note.sana|date:"F j, Y" }}
+                                        </span>
+                                    </div>
+                                    {% if note.modified %}
+                                    <p class="text-xs text-gray-500 mb-3">
+                                        <i class="fas fa-clock mr-1"></i>O'zgartirilgan: {{ note.modified|date:"F j, Y H:i" }}
+                                    </p>
+                                    {% endif %}
+                                    <p class="text-gray-800 text-lg leading-relaxed whitespace-pre-wrap">
+                                        {{ note.izoh }}
+                                    </p>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <div class="flex items-center space-x-2">
+                                        {% if note.user == request.user %}
+                                            <form action="{% url 'note-update' note.id %}" method="GET" class="inline">
+                                                <button type="submit" 
+                                                        class="inline-flex items-center px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg
+                                                               hover:bg-blue-100 transition-colors duration-200">
+                                                    <i class="fas fa-edit mr-1.5"></i>
+                                                    O'zgartirish
+                                                </button>
+                                            </form>
+                                            <form action="{% url 'note-delete' note.id %}" method="POST" class="inline">
+                                                {% csrf_token %}
+                                                <button type="submit" 
+                                                        class="inline-flex items-center px-3 py-1.5 bg-red-50 text-red-700 rounded-lg
+                                                               hover:bg-red-100 transition-colors duration-200">
+                                                    <i class="fas fa-trash-alt mr-1.5"></i>
+                                                    O'chirish
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-center py-16">
+                            <div class="text-gray-400 mb-6">
+                                <i class="fas fa-sticky-note text-7xl"></i>
+                            </div>
+                            <h3 class="text-xl font-medium text-gray-900 mb-4">Eslatmalar yo'q</h3>
+                            <p class="text-gray-500 mb-6">Muhim ma'lumotlarni saqlash uchun yangi eslatma yarating.</p>
+                            <a href="{% url 'note-add' %}" 
+                               class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg 
+                                      text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 
+                                      focus:ring-blue-500 transition-all duration-300">
+                                <i class="fas fa-plus mr-2"></i>Birinchi eslatmani yaratish
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% elif is_edit %}
+    <div class="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-12">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-6 sm:p-8">
+                <div class="flex items-center justify-between mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900">Eslatmani o'zgartirish</h1>
+                    <a href="{% url 'note-list' %}" 
+                       class="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors duration-200">
+                        <i class="fas fa-arrow-left mr-2"></i>Eslatmalarga qaytish
+                    </a>
+                </div>
+
+                <form action="{% url 'note-update' note.id %}" method="POST" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    {% if error %}
+                        <div class="rounded-md bg-red-50 p-4 border-l-4 border-red-400">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-exclamation-circle text-red-400"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-red-700">{{ error }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="space-y-2">
+                        <label for="note" class="block text-sm font-medium text-gray-700">Eslatma matni</label>
+                        <div class="relative">
+                            <textarea 
+                                id="note" 
+                                name="note" 
+                                rows="6" 
+                                maxlength="1000"
+                                class="block w-full rounded-lg border-gray-300 shadow-sm 
+                                       focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+                                       transition-colors duration-200"
+                                required
+                                onkeyup="updateCharCount(this)"
+                            >{% if note %}{{ note.izoh }}{% endif %}</textarea>
+                            <div id="charCount" 
+                                 class="absolute bottom-3 right-3 text-sm text-gray-500 bg-white px-2 py-1 rounded-md shadow-sm">
+                                1000 ta belgi qoldi
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" 
+                            class="w-full flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg 
+                                   text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 
+                                   focus:ring-blue-500 transition-all duration-300 transform hover:-translate-y-0.5">
+                        <i class="fas fa-save mr-2"></i>Saqlash
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-12">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-6 sm:p-8">
+                <div class="flex items-center justify-between mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900">Yangi eslatma</h1>
+                    <a href="{% url 'note-list' %}" 
+                       class="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors duration-200">
+                        <i class="fas fa-arrow-left mr-2"></i>Eslatmalarga qaytish
+                    </a>
+                </div>
+
+                <form action="{% url 'note-add' %}" method="POST" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    {% if error %}
+                        <div class="rounded-md bg-red-50 p-4 border-l-4 border-red-400">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-exclamation-circle text-red-400"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-red-700">{{ error }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="space-y-2">
+                        <label for="note" class="block text-sm font-medium text-gray-700">Eslatma matni</label>
+                        <div class="relative">
+                            <textarea 
+                                id="note" 
+                                name="note" 
+                                rows="6" 
+                                maxlength="1000"
+                                class="block w-full rounded-lg border-gray-300 shadow-sm 
+                                       focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+                                       transition-colors duration-200"
+                                required
+                                onkeyup="updateCharCount(this)"
+                                placeholder="Eslatma matnini kiriting..."
+                            ></textarea>
+                            <div id="charCount" 
+                                 class="absolute bottom-3 right-3 text-sm text-gray-500 bg-white px-2 py-1 rounded-md shadow-sm">
+                                1000 ta belgi qoldi
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" 
+                            class="w-full flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg 
+                                   text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 
+                                   focus:ring-blue-500 transition-all duration-300 transform hover:-translate-y-0.5">
+                        <i class="fas fa-save mr-2"></i>Saqlash
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<script>
+    function updateCharCount(textarea) {
+        const maxLength = textarea.getAttribute('maxlength');
+        const currentLength = textarea.value.length;
+        const remaining = maxLength - currentLength;
+        const charCountElement = document.getElementById('charCount');
+        charCountElement.textContent = `${remaining} ta belgi qoldi`;
+        
+        if (remaining < 100) {
+            charCountElement.classList.add('text-red-500');
+            charCountElement.classList.remove('text-gray-500');
+        } else {
+            charCountElement.classList.add('text-gray-500');
+            charCountElement.classList.remove('text-red-500');
+        }
+    }
+
+    window.addEventListener('load', function() {
+        const textarea = document.getElementById('note');
+        if (textarea) {
+            updateCharCount(textarea);
+        }
+    });
+</script>
+{%endblock%}

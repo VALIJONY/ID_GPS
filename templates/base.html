@@ -71,50 +71,50 @@
   <!-- Sidebar -->
   <div class="sidebar">
     <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
-      <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"></use></svg>
+      <svg class="bi me-2" width="40" height="32"><use xlink:href=""></use></svg>
       <span class="fs-4">ID GPS</span>
     </a>
     <hr>
     <ul class="nav nav-pills flex-column mb-auto">
       <li class="nav-item">
         <a href="{% url 'statistika' %}" class="nav-link {% if 'statistika' in request.path %}active{% else %}text-white{% endif %}">
-          Statistika
+          STATISTIKA
         </a>
       </li>
       <li>
         <a href="{% url 'mijozlar' %}" class="nav-link {% if 'mijozlar' in request.path %}active{% else %}text-white{% endif %}">
-          Mijozlar
+          MIJOZLAR
         </a>
       </li>
       <li>
         <a href="{% url 'sklad-list' %}" class="nav-link {% if 'sklad' in request.path %}active{% else %}text-white{% endif %}">
-          Sklad
+          SKLAD
         </a>
       </li>
       <li>
-        <a href="#" class="nav-link active text-white">
-          CRM
+        <a href="{% url 'note-list' %}" class="nav-link {% if 'note' in request.path %}active{%else%} text-white {%endif%}">
+          ESLATMALAR
         </a>
       </li>
       <li>
         <a href="{% url 'rasxod_list' %}" class="nav-link {% if 'rasxod' in request.path %}active{% else %}text-white{% endif %}">
-          RASXOT
+          RASXOD
         </a>
       </li>
       <li>
         <a href="{% url 'sotish_list' %}" class="nav-link {% if 'sotuv' in request.path %}active{% else %}text-white{% endif %}">
-          Sotuv
+          SOTUV
         </a>
       </li>
       <li>
         <a href="{% url 'bugalteriya' %}" class="nav-link {% if 'bugalteriya' in request.path %}active{% else %}text-white{% endif %}">
-          Bugalteriya
+          BUGALTERIYA
         </a>
       </li>
       {% if request.user.is_staff %}
       <li>
         <a href="{% url 'hodim-list' %}" class="nav-link {% if 'hodim' in request.path %}active{% else %}text-white{% endif %}">
-          Hodim
+          HODIM
         </a>
       </li>
       {% endif %}

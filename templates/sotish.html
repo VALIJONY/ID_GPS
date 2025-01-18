@@ -46,10 +46,10 @@
                     <td class="px-4 py-2">{{ sotish.sana }}</td>
                     <td class="px-4 py-2">{{ sotish.summasi }}</td>
                     <td class="px-4 py-2">
-                        {% if sotish.summasi > 0 %}
-                        <span class="text-green-500 font-semibold">Sotilgan</span>
+                        {% if sotish.karta > 0 %}
+                        <span class="text-red-500 font-semibold">Qarzdor-{{sotish.karta}}</span>
                         {% else %}
-                        <span class="text-red-500 font-semibold">Sotilmagan</span>
+                        <span class="text-green-500 font-semibold">Sotilgan</span>
                         {% endif %}
                     </td>
                     <td><a href="{% url 'sotish_update' sotish.pk %}">Tahrirlash</a></td>
