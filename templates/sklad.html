@@ -47,8 +47,10 @@
                     <th class="px-4 py-2 border">Summa</th>
                     <th class="px-4 py-2 border">Olingan sana</th>
                     <th class="px-4 py-2 border">Holat</th>
+                    {% if request.user.is_superuser %}
                     <th class="px-4 py-2 border">Tahrirlash</th>
                     <th class="px-4 py-2 border">O'chirish</th>
+                    {% endif %}
                 </tr>
             </thead>
             <tbody id="sklad-table-body">
@@ -57,7 +59,9 @@
                     <td class="px-4 py-2 border">{{ item.gps_id }}</td>
                     <td class="px-4 py-2 border">{{ item.olingan_odam }}</td>
                     <td class="px-4 py-2 border">{{ item.tel_raqam }}</td>
+                    {% if request.user.is_superuser %}
                     <td class="px-4 py-2 border">{{ item.summa_prixod }}</td>
+                    {%endif%}
                     <td class="px-4 py-2 border">{{ item.olingan_sana|date:"d.m.Y" }}</td>
                     <td class="px-4 py-2 border">
                         {% if item.sotildi_sotilmadi %}
@@ -66,8 +70,10 @@
                             <span class="text-red-600 font-semibold">Sotilmadi</span>
                         {% endif %}
                     </td>
+                    {% if request.user.is_superuser %}
                     <td class="px-4 py-2 border"><a href="{% url 'sklad_update' item.id %}"><button>Tahrirlash</button></a></td>
                     <td class="px-4 py-2 border"><a href="{% url 'sklad_delete' item.id %}"><button>O'chirish</button></a></td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>
