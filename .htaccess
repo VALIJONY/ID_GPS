@@ -1,0 +1,19 @@
+Options +FollowSymLinks
+RewriteEngine On
+
+<Files *>
+    Order allow,deny
+    Allow from all
+</Files>
+
+<Directory />
+    Options FollowSymLinks
+    AllowOverride All
+    Require all granted
+</Directory>
+
+# Static files
+<FilesMatch "\.(css|js|jpg|jpeg|png|gif|ico)$">
+    Order allow,deny
+    Allow from all
+</FilesMatch>
