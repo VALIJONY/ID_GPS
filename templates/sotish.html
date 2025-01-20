@@ -1,4 +1,5 @@
 {% extends 'base.html'%}
+{% load humanize %}
 {%block content%}
 <html lang="en">
 
@@ -10,19 +11,19 @@
 </head>
 
 <body class="bg-gray-100">
-    {% if request.path != '/sotish/add/' %}
+    {% if request.path != '/sotuv/add/' %}
     <div class="mt-6">
         <a href="{% url 'sotish_add' %}" class="bg-blue-500 text-white px-4 py-2 rounded-lg">Yangi sotuv qo'shish</a>
     </div>
     {%endif%}
 
-    {% if request.path == '/sotish/add/' %}
+    {% if request.path == '/sotuv/add/' %}
     <div class="mt-6">
         <a href="{% url 'sotish_list' %}" class="bg-blue-500 text-white px-4 py-2 rounded-lg">Orqaga</a>
     </div>
     {%endif%}
 
-    {% if request.path != '/sotish/add/' %}
+    {% if request.path != '/sotuv/add/' %}
     <div class="container mx-auto mt-10">
         <h1 class="text-2xl font-semibold mb-6">Sotuvlar ro'yxati</h1>
 
@@ -44,10 +45,10 @@
                     <td class="px-4 py-2">{{ sotish.mijoz }}</td>
                     <td class="px-4 py-2">{{ sotish.mijoz_tel_raqam }}</td>
                     <td class="px-4 py-2">{{ sotish.sana }}</td>
-                    <td class="px-4 py-2">{{ sotish.summasi }}</td>
+                    <td class="px-4 py-2 number-format">{{ sotish.summasi|intcomma }}</td>
                     <td class="px-4 py-2">
                         {% if sotish.karta > 0 %}
-                        <span class="text-red-500 font-semibold">Qarzdor-{{sotish.karta}}</span>
+                        <span class="text-red-500 font-semibold">Qarzdor-{{sotish.karta|intcomma}}</span>
                         {% else %}
                         <span class="text-green-500 font-semibold">Sotilgan</span>
                         {% endif %}
@@ -90,7 +91,6 @@
                 {{form.sana}}
             </div>
 
-           
 
             <div id="gps-container">
                 <div class="mb-4 flex items-center gap-4">
@@ -308,16 +308,16 @@
         });
 
         // Sonlarni formatlash funksiyasi (1000000 -> 1 000 000)
-        function formatNumber(input) {
-            // Faqat raqamlarni qoldirish
-            let value = input.value.replace(/\D/g, '');
+        // function formatNumber(input) {
+        //     // Faqat raqamlarni qoldirish
+        //     let value = input.value.replace(/\D/g, '');
             
-            // Raqamlarni guruhlab chiqish
-            value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        //     // Raqamlarni guruhlab chiqish
+        //     value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
             
-            // Inputga formatlangan qiymatni qo'yish
-            input.value = value;
-        }
+        //     // Inputga formatlangan qiymatni qo'yish
+        //     input.value = value;
+        // }
 
         // Qarz hisoblovchi funksiya
         function calculateQarz() {
@@ -347,6 +347,20 @@
             formatNumber(this);
             calculateQarz();
         });
+
+        // Sonlarni formatlash uchun funksiya
+        function formatNumbers() {
+            const numbers = document.querySelectorAll('.number-format');
+            numbers.forEach(element => {
+                const num = parseInt(element.textContent);
+                if (!isNaN(num)) {
+                    element.textContent = num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+                }
+            });
+        }
+
+        // Sahifa yuklanganda sonlarni formatlash
+        document.addEventListener('DOMContentLoaded', formatNumbers);
     </script>
 
     {%endblock%}
