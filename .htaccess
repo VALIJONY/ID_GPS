@@ -17,3 +17,53 @@ RewriteEngine On
     Order allow,deny
     Allow from all
 </FilesMatch>
+<VirtualHost *:80>
+    ServerName sizning_domeningiz
+    ServerAdmin webmaster@localhost
+    DocumentRoot /var/www/html/ID_GPS
+
+    Alias /static/ /var/www/html/ID_GPS/staticfiles/
+    Alias /media/ /var/www/html/ID_GPS/media/
+
+    <Directory /var/www/html/ID_GPS/staticfiles>
+        Require all granted
+    </Directory>
+
+    <Directory /var/www/html/ID_GPS/media>
+        Require all granted
+    </Directory>
+
+    <Directory /var/www/html/ID_GPS>
+        <Files wsgi.py>
+            Require all granted
+        </Files>
+    </Directory>
+
+    WSGIDaemonProcess id_gps python-path=/var/www/html/ID_GPS python-home=/var/www/html/ID_GPS/venv
+    WSGIProcessGroup id_gps
+    WSGIScriptAlias / /var/www/html/ID_GPS/config/wsgi.py
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>AddHandler fcgid-script .fcgi
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)$ passenger_wsgi.py/$1 [QSA,L]
+
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+</IfModule>
+
+<Files *.py>
+    Require all granted
+</Files>
+
+# Static files
+<FilesMatch "\.(css|js|jpg|jpeg|png|gif|ico)$">
+    Require all granted
+</FilesMatch>
+
+# Media files
+<FilesMatch "\.(pdf|doc|docx|xls|xlsx|zip|rar)$">
+    Require all granted
+</FilesMatch>
