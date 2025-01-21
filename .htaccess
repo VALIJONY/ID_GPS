@@ -1,21 +1,25 @@
+Options +ExecCGI
+AddHandler fcgid-script .fcgi
+AddHandler wsgi-script .py
+
 RewriteEngine On
+RewriteBase /
 RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ passenger_wsgi.py/$1 [QSA,L]
 
-# Static files
-<FilesMatch "\.(css|js|jpg|jpeg|png|gif|ico)$">
-    Order allow,deny
-    Allow from all
-</FilesMatch>
-
-# Media files
-<FilesMatch "\.(pdf|doc|docx|xls|xlsx|zip|rar)$">
-    Order allow,deny
-    Allow from all
-</FilesMatch>
-
-# Allow Python files
-<Files *.py>
-    Order allow,deny
-    Allow from all
+<Files *>
+    Require all granted
 </Files>
+
+<Directory "/home/idgroupg/public_html/static">
+    Options -Indexes
+    Order allow,deny
+    Allow from all
+</Directory>
+
+<Directory "/home/idgroupg/public_html/media">
+    Options -Indexes
+    Order allow,deny
+    Allow from all
+</Directory>

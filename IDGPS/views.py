@@ -22,6 +22,9 @@ import json
 class Loginview(LoginView):
     template_name = 'login.html'  
 
+    def get_success_url(self):
+        return reverse_lazy('home')
+
     def form_valid(self, form):
         user = form.get_user()
         login(self.request, user)
@@ -41,7 +44,6 @@ class Loginview(LoginView):
         return response
 
     def form_invalid(self, form):
-        # Login muvaffaqiyatsiz bo'lsa
         return self.render_to_response(
             self.get_context_data(
                 form=form,
