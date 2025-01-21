@@ -20,7 +20,7 @@ from django.db import models
 import json
 
 class Loginview(LoginView):
-    template_name = 'login.html'  
+    template_name = 'registration/login.html'  
 
     def get_success_url(self):
         return reverse_lazy('home')
