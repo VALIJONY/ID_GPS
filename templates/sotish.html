@@ -1,369 +1,322 @@
 {% extends 'base.html'%}
 {% load humanize %}
-{%block content%}
-<html lang="en">
+{% block content %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sotish ro'yxati</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-</head>
-
-<body class="bg-gray-100">
-    {% if request.path != '/sotuv/add/' %}
+<div class="container mx-auto px-4">
     <div class="mt-6">
-        <a href="{% url 'sotish_add' %}" class="bg-blue-500 text-white px-4 py-2 rounded-lg">Yangi sotuv qo'shish</a>
+        {% if request.path != '/sotuv/add/' %}
+        <a href="{% url 'sotish_add' %}" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+            Yangi sotuv qo'shish
+        </a>
+        {% else %}
+        <a href="{% url 'sotish_list' %}" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+            Orqaga
+        </a>
+        {% endif %}
     </div>
-    {%endif%}
-
-    {% if request.path == '/sotuv/add/' %}
-    <div class="mt-6">
-        <a href="{% url 'sotish_list' %}" class="bg-blue-500 text-white px-4 py-2 rounded-lg">Orqaga</a>
-    </div>
-    {%endif%}
 
     {% if request.path != '/sotuv/add/' %}
-    <div class="container mx-auto mt-10">
+    <div class="mt-10">
         <h1 class="text-2xl font-semibold mb-6">Sotuvlar ro'yxati</h1>
-
-        <table class="min-w-full table-auto bg-white shadow-lg rounded-lg">
-            <thead>
-                <tr class="bg-blue-500 text-white">
-                    <th class="px-4 py-2">Mijoz</th>
-                    <th class="px-4 py-2">Telefon raqam</th>
-                    <th class="px-4 py-2">Sana</th>
-                    <th class="px-4 py-2">Summasi</th>
-                    <th class="px-4 py-2">Holat</th>
-                    <th class="px-4 py-2">Tahrirlash</th>
-                    <th class="px-4 py-2">O`chirish</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for sotish in sotish_items %}
-                <tr>
-                    <td class="px-4 py-2">{{ sotish.mijoz }}</td>
-                    <td class="px-4 py-2">{{ sotish.mijoz_tel_raqam }}</td>
-                    <td class="px-4 py-2">{{ sotish.sana }}</td>
-                    <td class="px-4 py-2 number-format">{{ sotish.summasi|intcomma }}</td>
-                    <td class="px-4 py-2">
-                        {% if sotish.karta > 0 %}
-                        <span class="text-red-500 font-semibold">Qarzdor-{{sotish.karta|intcomma}}</span>
-                        {% else %}
-                        <span class="text-green-500 font-semibold">Sotilgan</span>
-                        {% endif %}
-                    </td>
-                    <td><a href="{% url 'sotish_update' sotish.pk %}">Tahrirlash</a></td>
-                    <td>
-                        <form method="post" action="{% url 'sotish_delete' sotish.id %}">
-                            {% csrf_token %}
-                            <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700">
-                                O'chirish
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="overflow-x-auto bg-white rounded-lg shadow">
+            <table class="min-w-full table-auto">
+                <thead>
+                    <tr class="bg-blue-500 text-white">
+                        <th class="px-4 py-3">Mijoz</th>
+                        <th class="px-4 py-3">Telefon raqam</th>
+                        <th class="px-4 py-3">Sana</th>
+                        <th class="px-4 py-3">Summasi</th>
+                        <th class="px-4 py-3">Master</th>
+                        <th class="px-4 py-3">Master Summasi</th>
+                        <th class="px-4 py-3">Holat</th>
+                        <th class="px-4 py-3">Tahrirlash</th>
+                        <th class="px-4 py-3">O`chirish</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sotish in sotish_items %}
+                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                        <td class="px-4 py-3">{{ sotish.mijoz }}</td>
+                        <td class="px-4 py-3">{{ sotish.mijoz_tel_raqam }}</td>
+                        <td class="px-4 py-3">{{ sotish.sana }}</td>
+                        <td class="px-4 py-3 number-format">{{ sotish.summasi|intcomma }}</td>
+                        <td class="px-4 py-3">{{ sotish.master }}</td>
+                        <td class="px-4 py-3 number-format">{{ sotish.master_summasi|intcomma }}</td>
+                        <td class="px-4 py-3">
+                            {% if sotish.karta > 0 %}
+                            <span class="text-red-500 font-semibold">Qarzdor-{{sotish.karta|intcomma}}</span>
+                            {% else %}
+                            <span class="text-green-500 font-semibold">Sotilgan</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3">
+                            <a href="{% url 'sotish_update' sotish.pk %}" 
+                               class="text-blue-500 hover:text-blue-700 transition">
+                                Tahrirlash
+                            </a>
+                        </td>
+                        <td class="px-4 py-3">
+                            <form method="post" action="{% url 'sotish_delete' sotish.id %}" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" 
+                                        class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700 transition">
+                                    O'chirish
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
-    {%endif%}
+    {% endif %}
 
     {% if request.path == '/sotuv/add/' %}
-
-
-    <div class="container mx-auto mt-6">
-        <form id="sotish-form" method="POST" class="bg-white p-4 rounded-lg shadow-md space-y-4 max-w-xl mx-auto">
-            <h2 class="text-lg font-semibold text-gray-800">Sotish Formasi</h2>
+    <div class="mt-6">
+        <form method="POST" class="bg-white p-6 rounded-lg shadow-md max-w-4xl mx-auto">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Sotish Formasi</h2>
             {% csrf_token %}
-            <div class="mb-4">
-                <label for="mijoz" class="block text-gray-700 font-medium mb-2">Mijoz</label>
-                {{form.mijoz}}
-            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Mijoz ma'lumotlari -->
+                <div class="form-group">
+                    <label class="block text-gray-700 font-medium mb-2">Mijoz</label>
+                    {{form.mijoz}}
+                </div>
 
-            <div class="mb-4">
-                <label for="mijoz_tel_raqam" class="block text-gray-700 font-medium mb-2">Mijoz telefon raqami</label>
-                {{form.mijoz_tel_raqam}}
-            </div>
+                <div class="form-group">
+                    <label class="block text-gray-700 font-medium mb-2">Mijoz telefon raqami</label>
+                    {{form.mijoz_tel_raqam}}
+                </div>
 
-            <div class="mb-4">
-                <label for="sana" class="block text-gray-700 font-medium mb-2">Sana</label>
-                {{form.sana}}
-            </div>
+                <div class="form-group">
+                    <label class="block text-gray-700 font-medium mb-2">Sana</label>
+                    {{form.sana}}
+                </div>
 
+                <div class="form-group">
+                    <label class="block text-gray-700 font-medium mb-2">Dasturiy ta'minot</label>
+                    {{form.dasturiy_taminot}}
+                </div>
 
-            <div id="gps-container">
-                <div class="mb-4 flex items-center gap-4">
-                    <div class="flex-grow">
-                        <label class="block text-gray-700 font-medium mb-2">GPS ID</label>
-                        <select name="gps_id" onchange="updateDisabledOptions()"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">GPS tanlang</option>
-                            {% for gps in form.fields.gps_id.queryset %}
-                            <option value="{{ gps.id }}">{{ gps.gps_id }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="flex-grow">
-                        <label class="block text-gray-700 font-medium mb-2">SIM karta</label>
-                        {{form.sim_karta}}
-                    </div>
+                <!-- Login ma'lumotlari -->
+                <div class="form-group">
+                    <label class="block text-gray-700 font-medium mb-2">Username</label>
+                    {{form.username}}
+                </div>
+
+                <div class="form-group">
+                    <label class="block text-gray-700 font-medium mb-2">Password</label>
+                    {{form.password}}
+                </div>
+
+                <!-- Master ma'lumotlari -->
+                <div class="form-group">
+                    <label class="block text-gray-700 font-medium mb-2">Master</label>
+                    {{form.master}}
+                </div>
+
+                <div class="form-group">
+                    <label class="block text-gray-700 font-medium mb-2">Master summasi</label>
+                    <input type="text" name="master_summasi" id="master_summasi" 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" 
+                           onkeyup="formatNumber(this);">
+                </div>
+
+                <div class="form-group">
+                    <label class="block text-gray-700 font-medium mb-2">Abonent to'lov</label>
+                    {{form.abonent_tulov}}
                 </div>
             </div>
 
-            <button type="button" onclick="addGpsField()"
-                class="mb-4 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600">
-                + GPS qo'shish
-            </button>
+            <!-- GPS va SIM karta -->
+            <div id="gps-container" class="mt-6">
+                <div class="gps-fields">
+                    <div class="gps-field mb-4">
+                        <div class="grid grid-cols-4 gap-4">
+                            <!-- GPS tanlash -->
+                            <div class="form-group">
+                                <label class="block text-gray-700 font-medium mb-2">GPS ID</label>
+                                <select name="gps_id" class="gps-select w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required onchange="updateGpsOptions()">
+                                    <option value="">GPS tanlang</option>
+                                    {% for gps in form.fields.gps_id.queryset %}
+                                        <option value="{{ gps.id }}">{{ gps.gps_id }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
 
-            <div class="mb-4">
-                <label for="dasturiy_taminot" class="block text-gray-700 font-medium mb-2">Dasturiy ta'minot</label>
-                {{form.dasturiy_taminot}}
-            </div>
+                            <!-- SIM karta -->
+                            <div class="form-group">
+                                <label class="block text-gray-700 font-medium mb-2">SIM karta</label>
+                                <input type="text" name="sim_karta" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+                            </div>
 
-            <div class="mb-4">
-                <label for="username" class="block text-gray-700 font-medium mb-2">Username</label>
-                {{form.username}}
-            </div>
+                            <!-- Mashina turi -->
+                            <div class="form-group">
+                                <label class="block text-gray-700 font-medium mb-2">Mashina turi</label>
+                                <input type="text" name="mashina_turi" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required placeholder="Masalan: Cobalt">
+                            </div>
 
-            <div class="mb-4">
-                <label for="password" class="block text-gray-700 font-medium mb-2">Password</label>
-                {{form.password}}
-            </div>
-            <div class="mb-4">
-                <label for="abonent_tulov" class="block text-gray-700 font-medium mb-2">Abonent to'lov</label>
-                {{form.abonent_tulov}}
-            </div>
-            <div class="mb-4">
-                <label for="id_summasi" class="block text-gray-700 font-medium mb-2">Umumiy summa</label>
-                <input type="text" id="id_summasi" name="summasi" 
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" 
-                    onkeyup="formatNumber(this); calculateQarz();">
-            </div>
-
-            <!-- Hidden inputs for form submission -->
-            <input type="hidden" id="naqd_hidden" name="naqd">
-            <input type="hidden" id="bank_schot_hidden" name="bank_schot"> 
-            <input type="hidden" id="karta_hidden" name="karta">
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div>
-                    <label for="naqd" class="block text-gray-700 font-medium mb-2">Naqd</label>
-                    <input type="text" id="naqd" name="naqd" 
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" 
-                        onkeyup="formatNumber(this); calculateQarz();">
-                </div>
-
-                <div>
-                    <label for="bank_schot" class="block text-gray-700 font-medium mb-2">Bank hisob</label>
-                    <input type="text" id="bank_schot" name="bank_schot" 
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" 
-                        onkeyup="formatNumber(this); calculateQarz();">
-                </div>
-
-                <div>
-                    <label for="karta" class="block text-gray-700 font-medium mb-2">Qarz</label>
-                    <input type="text" id="karta" name="karta" readonly 
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100">
-                </div>
-            </div>
-
-                            <!-- Submit Button -->
-                            <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600">Saqlash</button>
+                            <!-- Davlat raqami -->
+                            <div class="form-group">
+                                <label class="block text-gray-700 font-medium mb-2">Davlat raqami</label>
+                                <input type="text" name="davlat_raqami" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required placeholder="Masalan: 01A777AA">
+                            </div>
                         </div>
+                        <button type="button" onclick="removeGpsField(this)" class="mt-2 bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition">
+                            O'chirish
+                        </button>
                     </div>
                 </div>
+                <button type="button" onclick="addGpsField()" 
+                        class="mt-4 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition">
+                    + GPS qo'shish
+                </button>
+            </div>
+
+            <!-- To'lov ma'lumotlari -->
+            <div class="mt-6 space-y-4">
+                <div class="form-group">
+                    <label class="block text-gray-700 font-medium mb-2">Umumiy summa</label>
+                    <input type="text" name="summasi" id="id_summasi" 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" 
+                           onkeyup="formatNumber(this); calculateQarz();">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="form-group">
+                        <label class="block text-gray-700 font-medium mb-2">Naqd</label>
+                        <input type="text" name="naqd" id="naqd"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" 
+                               onkeyup="formatNumber(this); calculateQarz();">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="block text-gray-700 font-medium mb-2">Bank hisob</label>
+                        <input type="text" name="bank_schot" id="bank_schot"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" 
+                               onkeyup="formatNumber(this); calculateQarz();">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="block text-gray-700 font-medium mb-2">Qarz</label>
+                        <input type="text" name="karta" id="karta" readonly 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6">
+                <button type="submit" 
+                        class="w-full bg-blue-500 text-white py-3 px-4 rounded-lg hover:bg-blue-600 transition duration-200">
+                    Saqlash
+                </button>
             </div>
         </form>
     </div>
+    {% endif %}
+</div>
 
-    {%endif%}
-    <script>
-        // GPS bilan bog'liq funksiyalar
-        function updateDisabledOptions() {
-            const container = document.getElementById('gps-container');
-            const selects = container.querySelectorAll('select[name="gps_id"]');
-            const selectedValues = Array.from(selects)
-                .map(select => select.value)
-                .filter(value => value !== "");
+<script>
+    function formatNumber(input) {
+        let value = input.value.replace(/\D/g, '');
+        value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        input.value = value;
+    }
 
-            // Barcha select elementlarini aylanib chiqish
-            selects.forEach(select => {
-                Array.from(select.options).forEach(option => {
-                    // Agar option qiymati tanlangan bo'lsa va bu select o'sha qiymatni tanlamagan bo'lsa
-                    if (selectedValues.includes(option.value) && option.value !== select.value) {
-                        option.disabled = true;
-                    } else {
-                        option.disabled = false;
-                    }
-                });
-            });
-        }
+    function parseFormattedNumber(value) {
+        return parseInt(value.replace(/\s/g, '') || 0);
+    }
 
-        function addGpsField() {
-            const container = document.getElementById('gps-container');
-            const newField = document.createElement('div');
-            newField.className = 'mb-4 flex items-center gap-4';
-
-            // GPS va SIM karta maydonlarini yaratish
-            newField.innerHTML = `
-        <div class="flex-grow">
-            <label class="block text-gray-700 font-medium mb-2">GPS ID</label>
-            <select name="gps_id" onchange="updateDisabledOptions()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">GPS tanlang</option>
-                {% for gps in form.fields.gps_id.queryset %}
-                    <option value="{{ gps.id }}">{{ gps.gps_id }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="flex-grow">
-            <label class="block text-gray-700 font-medium mb-2">SIM karta</label>
-            <input type="text" name="sim_karta" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-        <button type="button" onclick="removeGpsField(this)" class="mt-6 bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600">
-            -
-        </button>
-    `;
-
-            container.appendChild(newField);
-            updateDisabledOptions();
-        }
-
-        function removeGpsField(button) {
-            button.closest('.mb-4').remove();
-            updateDisabledOptions();
-        }
-
-        // Modal bilan bog'liq funksiyalar
-        function showPaymentModal() {
-            const modal = document.getElementById('paymentModal');
-            if (!modal) return;
-            
-            modal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-            document.getElementById('naqd').focus();
-            
-            // Umumiy summani olish va ko'rsatish
-            const umumiySumma = document.getElementById('id_summasi').value;
-            document.getElementById('naqd').value = '';
-            document.getElementById('bank_schot').value = '';
-            document.getElementById('karta').value = umumiySumma;
-        }
-
-        function closePaymentModal() {
-            const modal = document.getElementById('paymentModal');
-            if (!modal) return;
-            
-            modal.classList.add('hidden');
-            document.body.style.overflow = '';
-        }
-
-        function calculateQarz() {
-            const umumiySumma = parseFloat(document.getElementById('id_summasi').value) || 0;
-            const naqd = parseFloat(document.getElementById('naqd').value) || 0;
-            const bankSchot = parseFloat(document.getElementById('bank_schot').value) || 0;
-            const qarz = umumiySumma - (naqd + bankSchot);
-            document.getElementById('karta').value = qarz;
-        }
-
-        function submitForm() {
-            // Hidden inputlarga qiymatlarni ko'chirish
-            document.getElementById('naqd_hidden').value = document.getElementById('naqd').value;
-            document.getElementById('bank_schot_hidden').value = document.getElementById('bank_schot').value;
-            document.getElementById('karta_hidden').value = document.getElementById('karta').value;
-            
-            // Formani yuborish
-            document.querySelector('form').submit();
-        }
-
-        // DOMContentLoaded event listener
-        document.addEventListener("DOMContentLoaded", function () {
-            // Modal event listenerlar
-            const showModalButton = document.getElementById('showModalButton');
-            if (showModalButton) {
-                showModalButton.addEventListener('click', showPaymentModal);
+    function calculateQarz() {
+        const summasi = parseFormattedNumber(document.getElementById('id_summasi').value);
+        const naqd = parseFormattedNumber(document.getElementById('naqd').value);
+        const bank_schot = parseFormattedNumber(document.getElementById('bank_schot').value);
+        const qarz = summasi - (naqd + bank_schot);
+        
+        if (qarz < 0 || isNaN(summasi) || summasi === 0) {
+            document.getElementById('karta').value = '0';
+            if (qarz < 0) {
+                alert("To'lov summasi umumiy summadan oshib ketdi!");
+                document.getElementById('naqd').value = '0';
+                document.getElementById('bank_schot').value = '0';
             }
+        } else {
+            document.getElementById('karta').value = qarz.toLocaleString('en-US').replace(/,/g, ' ');
+        }
+    }
 
-            const modal = document.getElementById('paymentModal');
-            if (modal) {
-                modal.addEventListener('click', function(e) {
-                    if (e.target === this) {
-                        closePaymentModal();
-                    }
-                });
-            }
+    function updateGpsOptions() {
+        const selects = document.querySelectorAll('.gps-select');
+        const selectedValues = Array.from(selects)
+            .map(select => select.value)
+            .filter(value => value !== "");
 
-            // ESC tugmasi bosilganda modalni yopish
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    closePaymentModal();
+        selects.forEach(select => {
+            const currentValue = select.value;
+            Array.from(select.options).forEach(option => {
+                if (option.value && option.value !== currentValue) {
+                    option.style.display = selectedValues.includes(option.value) ? 'none' : '';
                 }
             });
-
-            // GPS select event listener
-            const firstSelect = document.querySelector('select[name="gps_id"]');
-            if (firstSelect) {
-                firstSelect.addEventListener('change', updateDisabledOptions);
-            }
         });
+    }
 
-        // Sonlarni formatlash funksiyasi (1000000 -> 1 000 000)
-        // function formatNumber(input) {
-        //     // Faqat raqamlarni qoldirish
-        //     let value = input.value.replace(/\D/g, '');
-            
-        //     // Raqamlarni guruhlab chiqish
-        //     value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-            
-        //     // Inputga formatlangan qiymatni qo'yish
-        //     input.value = value;
-        // }
+    function addGpsField() {
+        const container = document.querySelector('.gps-fields');
+        const newField = document.createElement('div');
+        newField.className = 'gps-field mb-4';
+        
+        newField.innerHTML = `
+            <div class="grid grid-cols-4 gap-4">
+                <!-- GPS tanlash -->
+                <div class="form-group">
+                    <label class="block text-gray-700 font-medium mb-2">GPS ID</label>
+                    <select name="gps_id" class="gps-select w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required onchange="updateGpsOptions()">
+                        <option value="">GPS tanlang</option>
+                        {% for gps in form.fields.gps_id.queryset %}
+                            <option value="{{ gps.id }}">{{ gps.gps_id }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
 
-        // Qarz hisoblovchi funksiya
-        function calculateQarz() {
-            // Qiymatlarni olish va ulardan probel/bo'shliqlarni olib tashlash
-            const umumiySumma = parseFloat(document.getElementById('id_summasi').value.replace(/\s/g, '')) || 0;
-            const naqd = parseFloat(document.getElementById('naqd').value.replace(/\s/g, '')) || 0;
-            const bankSchot = parseFloat(document.getElementById('bank_schot').value.replace(/\s/g, '')) || 0;
-            
-            // Qarzni hisoblash
-            const qarz = umumiySumma - (naqd + bankSchot);
-            
-            // Qarzni formatlash va ko'rsatish
-            document.getElementById('karta').value = qarz.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-        }
+                <!-- SIM karta -->
+                <div class="form-group">
+                    <label class="block text-gray-700 font-medium mb-2">SIM karta</label>
+                    <input type="text" name="sim_karta" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+                </div>
 
-        // Form submit bo'lganda
-        document.querySelector('form').addEventListener('submit', function(e) {
-            // Barcha inputlardan probel/bo'shliqlarni olib tashlash
-            document.getElementById('naqd').value = document.getElementById('naqd').value.replace(/\s/g, '');
-            document.getElementById('bank_schot').value = document.getElementById('bank_schot').value.replace(/\s/g, '');
-            document.getElementById('karta').value = document.getElementById('karta').value.replace(/\s/g, '');
-            document.getElementById('id_summasi').value = document.getElementById('id_summasi').value.replace(/\s/g, '');
-        });
+                <!-- Mashina turi -->
+                <div class="form-group">
+                    <label class="block text-gray-700 font-medium mb-2">Mashina turi</label>
+                    <input type="text" name="mashina_turi" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required placeholder="Masalan: Cobalt">
+                </div>
 
-        // Umumiy summa inputiga ham formatlash qo'shish
-        document.getElementById('id_summasi').addEventListener('keyup', function() {
-            formatNumber(this);
-            calculateQarz();
-        });
+                <!-- Davlat raqami -->
+                <div class="form-group">
+                    <label class="block text-gray-700 font-medium mb-2">Davlat raqami</label>
+                    <input type="text" name="davlat_raqami" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required placeholder="Masalan: 01A777AA">
+                </div>
+            </div>
+            <button type="button" onclick="removeGpsField(this)" class="mt-2 bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition">
+                O'chirish
+            </button>
+        `;
+        
+        container.appendChild(newField);
+        updateGpsOptions();
+    }
 
-        // Sonlarni formatlash uchun funksiya
-        function formatNumbers() {
-            const numbers = document.querySelectorAll('.number-format');
-            numbers.forEach(element => {
-                const num = parseInt(element.textContent);
-                if (!isNaN(num)) {
-                    element.textContent = num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-                }
-            });
-        }
+    function removeGpsField(button) {
+        button.closest('.gps-field').remove();
+        updateGpsOptions();
+    }
 
-        // Sahifa yuklanganda sonlarni formatlash
-        document.addEventListener('DOMContentLoaded', formatNumbers);
-    </script>
+    // Sahifa yuklanganda GPS tanlovlarini yangilash
+    document.addEventListener('DOMContentLoaded', function() {
+        updateGpsOptions();
+    });
+</script>
 
-    {%endblock%}
-</body>
-
-</html>
+{% endblock %}

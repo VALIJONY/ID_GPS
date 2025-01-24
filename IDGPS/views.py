@@ -7,7 +7,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import login,logout
-from .models import Bugalteriya, CustomUser, Note, Rasxod,Sklad, Sotish, DasturiyTaminot
+from .models import Bugalteriya, CustomUser, Note, Rasxod,Sklad, Sotish, DasturiyTaminot, MashinaMalumoti
 from django.views import View
 from .forms import SkladForm,SotishForm, HodimForm
 from django.views.generic import UpdateView,DeleteView,TemplateView,ListView,CreateView
@@ -154,180 +154,248 @@ class SotishListView(LoginRequiredMixin, View):
         sotish_items = Sotish.objects.all().order_by('-sana')  # Sana bo'yicha tartiblangan ro'yxat
         return render(request, 'sotish.html', {'sotish_items': sotish_items})
 
-class SotishAddView(LoginRequiredMixin, View):
+class SotishAddView(View):
     template_name = 'sotish.html'
 
     def get(self, request):
         form = SotishForm()
-        gps_list = Sklad.objects.filter(sotildi_sotilmadi=False)
+        gps_list = Sklad.objects.filter(sotildi_sotilmadi=False)  # Sotilmagan GPS larni olish
         return render(request, self.template_name, {
             'form': form,
             'gps_list': gps_list
         })
-    
+
     def post(self, request):
-        try:
-            # Form ma'lumotlarini olish
-            mijoz = request.POST.get('mijoz')
-            mijoz_tel_raqam = request.POST.get('mijoz_tel_raqam')
-            dasturiy_taminot_id = request.POST.get('dasturiy_taminot')
-            username = request.POST.get('username')
-            password = request.POST.get('password')
-            abonent_tulov = request.POST.get('abonent_tulov')
-            sana = request.POST.get('sana')
-            summasi = request.POST.get('summasi')
-            naqd = request.POST.get('naqd', 0)
-            karta = request.POST.get('karta', 0)
-            bank_schot = request.POST.get('bank_schot', 0)
-            master = request.POST.get('master', '')
-            master_summasi = request.POST.get('master_summasi', 0)
-
-            # GPS ID larni olish
-            gps_ids = request.POST.getlist('gps_id')
-            
-            # SIM karta raqamlarini olish va birlashtirish
-            sim_kartalar = request.POST.getlist('sim_karta')
-            sim_karta_string = ','.join(filter(None, sim_kartalar))
-
-            # Sotish obyektini yaratish
-            sotish = Sotish.objects.create(
-                mijoz=mijoz,
-                mijoz_tel_raqam=mijoz_tel_raqam,
-                sim_karta=sim_karta_string,
-                dasturiy_taminot_id=dasturiy_taminot_id,
-                username=username,
-                password=password,
-                abonent_tulov=abonent_tulov,
-                sana=sana,
-                summasi=summasi,
-                naqd=naqd,
-                karta=karta,
-                bank_schot=bank_schot,
-                master=master,
-                master_summasi=master_summasi
-            )
-            
-            # GPS qurilmalarini sotilgan holatga o'tkazish va bog'lash
-            for gps_id in gps_ids:
-                if gps_id:  # Bo'sh bo'lmagan GPS ID lar uchun
-                    gps = Sklad.objects.get(id=gps_id)
-                    gps.sotildi_sotilmadi = True
-                    gps.save()
-                    sotish.gps_id.add(gps)
-            
-            messages.success(request, "Sotish muvaffaqiyatli amalga oshirildi!")
-            return redirect('sotish_list')
-            
-        except Exception as e:
-            messages.error(request, f"Xatolik yuz berdi: {str(e)}")
-            form = SotishForm(request.POST)
-            return render(request, self.template_name, {'form': form})
+        form = SotishForm(request.POST)
         
-        return render(request, self.template_name, {'form': SotishForm()})
+        if form.is_valid():
+            try:
+                # Raqamlarni formatlash va o'zgartirish
+                def format_number(value):
+                    if not value:
+                        return 0
+                    # Vergul va probellarni olib tashlash
+                    value = value.replace(',', '').replace(' ', '')
+                    try:
+                        return int(value)
+                    except ValueError:
+                        return 0
 
-class SotishUpdateView(LoginRequiredMixin, View):
-    def get(self, request, pk):
-        sotish = get_object_or_404(Sotish, id=pk)
-        mavjud_gpslar = Sklad.objects.filter(Q(sotildi_sotilmadi=False) | Q(id__in=sotish.gps_id.all()))
-        
-        # GPS va SIM kartalarni juftlab olish
-        gps_sim_pairs = []
-        sim_kartalar = sotish.sim_karta.split(',') if sotish.sim_karta else []
-        
-        for i, gps in enumerate(sotish.gps_id.all()):
-            sim_karta = sim_kartalar[i] if i < len(sim_kartalar) else ""
-            gps_sim_pairs.append({
-                'gps': gps,
-                'sim': sim_karta.strip()
-            })
+                summasi = format_number(request.POST.get('summasi', '0'))
+                naqd = format_number(request.POST.get('naqd', '0'))
+                karta = format_number(request.POST.get('karta', '0'))
+                bank_schot = format_number(request.POST.get('bank_schot', '0'))
+                master_summasi = format_number(request.POST.get('master_summasi', '0'))
 
-        context = {
-            'sotish': sotish,
-            'mavjud_gpslar': mavjud_gpslar,
-            'gps_sim_pairs': gps_sim_pairs,
-            'dasturiy_taminot': DasturiyTaminot.objects.all(),
-        }
-        
-        return render(request, 'sotish_update.html', context)
+                # Umumiy summa va qarz hisoblash
+                umumiy_summasi = summasi
+                qarz = umumiy_summasi - (naqd + bank_schot)
+                
+                if qarz < 0:
+                    messages.error(request, "To'lov summasi umumiy summadan oshib ketdi!")
+                    return render(request, self.template_name, {
+                        'form': form,
+                        'gps_list': Sklad.objects.filter(sotildi_sotilmadi=False)
+                    })
 
-    def post(self, request, pk):
-        sotish = get_object_or_404(Sotish, id=pk)
-        
-        try:
-            # Formadan ma'lumotlarni olish
-            mijoz = request.POST.get('mijoz')
-            mijoz_tel = request.POST.get('mijoz_tel_raqam')
-            gps_ids = request.POST.getlist('gps_id')
-            sim_kartalar = request.POST.getlist('sim_karta')
-            dasturiy_taminot_id = request.POST.get('dasturiy_taminot')
-            username = request.POST.get('username')
-            password = request.POST.get('password')
-            summasi = request.POST.get('summasi')
-            naqd = request.POST.get('naqd', 0)
-            bank_schot = request.POST.get('bank_schot', 0)
-            karta = request.POST.get('karta', 0)
-            abonent_tulov = request.POST.get('abonent_tulov')
-            sana = request.POST.get('sana')
-            master = request.POST.get('master', '')
-            master_summasi = request.POST.get('master_summasi', 0)
+                # Sotish obyektini yaratish
+                sotish = form.save(commit=False)
+                sotish.summasi = summasi
+                sotish.naqd = naqd
+                sotish.karta = karta
+                sotish.bank_schot = bank_schot
+                sotish.master_summasi = master_summasi
+                sotish.save()
 
-            # Eski GPS'larni sotilmagan holatga qaytarish
-            old_gps_list = sotish.gps_id.all()
-            for old_gps in old_gps_list:
-                old_gps.sotildi_sotilmadi = False
-                old_gps.save()
-            
-            # Ma'lumotlarni yangilash
-            sotish.mijoz = mijoz
-            sotish.mijoz_tel_raqam = mijoz_tel
-            sotish.dasturiy_taminot_id = dasturiy_taminot_id
-            sotish.username = username
-            sotish.password = password
-            sotish.summasi = summasi
-            sotish.naqd = naqd
-            sotish.bank_schot = bank_schot
-            sotish.karta = karta
-            sotish.abonent_tulov = abonent_tulov
-            sotish.sana = sana
-            sotish.master = master
-            sotish.master_summasi = master_summasi
-            
-            # GPS va SIM kartalarni saqlash
-            sotish.gps_id.clear()
-            valid_sim_kartalar = []
-            
-            for i, gps_id in enumerate(gps_ids):
-                if gps_id:
-                    gps = Sklad.objects.get(id=gps_id)
+                # GPS va mashina ma'lumotlarini olish
+                gps_ids = form.cleaned_data['gps_id']
+                sim_kartalar = request.POST.getlist('sim_karta')
+                mashina_turlari = request.POST.getlist('mashina_turi')
+                davlat_raqamlari = request.POST.getlist('davlat_raqami')
+
+                print("Kelgan ma'lumotlar:")
+                print("GPS IDs:", gps_ids)
+                print("SIM kartalar:", sim_kartalar)
+                print("Mashina turlari:", mashina_turlari)
+                print("Davlat raqamlari:", davlat_raqamlari)
+
+                # SIM kartalarni vergul bilan ajratib saqlash
+                sotish.sim_karta = ', '.join(filter(None, sim_kartalar))
+                sotish.save()
+
+                # GPS va mashina ma'lumotlarini saqlash
+                for i, gps in enumerate(gps_ids):
                     gps.sotildi_sotilmadi = True
                     gps.save()
                     sotish.gps_id.add(gps)
                     
-                    # SIM kartani qo'shish
-                    if i < len(sim_kartalar) and sim_kartalar[i].strip():
-                        valid_sim_kartalar.append(sim_kartalar[i].strip())
+                    # Mashina ma'lumotlarini saqlash
+                    if i < len(mashina_turlari) and i < len(davlat_raqamlari):
+                        MashinaMalumoti.objects.create(
+                            sotish=sotish,
+                            gps=gps,
+                            mashina_turi=mashina_turlari[i],
+                            davlat_raqami=davlat_raqamlari[i]
+                        )
+                        print(f"Mashina ma'lumotlari saqlandi: {mashina_turlari[i]} - {davlat_raqamlari[i]}")
+
+                messages.success(request, "Sotish muvaffaqiyatli saqlandi!")
+                return redirect('sotish_list')
             
-            # SIM kartalarni vergul bilan ajratib saqlash
-            sotish.sim_karta = ', '.join(valid_sim_kartalar)
-            sotish.save()
+            except Exception as e:
+                print("Asosiy xatolik:", str(e))
+                messages.error(request, f"Xatolik yuz berdi: {str(e)}")
+        else:
+            print("Forma xatoliklari:", form.errors)
+            messages.error(request, "Forma to'g'ri to'ldirilmagan!")
+        
+        return render(request, self.template_name, {
+            'form': form,
+            'gps_list': Sklad.objects.filter(sotildi_sotilmadi=False)
+        })
+
+class SotishUpdateView(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        sotish = get_object_or_404(Sotish, id=pk)
+        form = SotishForm(instance=sotish)
+        
+        # GPS, SIM karta va mashina ma'lumotlarini olish
+        sim_kartalar = sotish.sim_karta.split(', ') if sotish.sim_karta else []
+        mashina_malumotlari = sotish.mashina_malumotlari.all()
+        gps_data = []
+        
+        # GPS va unga tegishli ma'lumotlarni yig'ish
+        for i, gps in enumerate(sotish.gps_id.all()):
+            sim_karta = sim_kartalar[i] if i < len(sim_kartalar) else ""
+            mashina = mashina_malumotlari.filter(gps=gps).first()
             
-            messages.success(request, "Ma'lumotlar muvaffaqiyatli yangilandi!")
-            return redirect('sotish_list')
-            
+            gps_data.append({
+                'gps': gps,
+                'sim': sim_karta,
+                'mashina_turi': mashina.mashina_turi if mashina else "",
+                'davlat_raqami': mashina.davlat_raqami if mashina else ""
+            })
+        
+        context = {
+            'form': form,
+            'sotish': sotish,
+            'gps_data': gps_data,
+            'mavjud_gpslar': Sklad.objects.filter(Q(sotildi_sotilmadi=False) | Q(id__in=sotish.gps_id.all()))
+        }
+        return render(request, 'sotish_update.html', context)
+
+    def post(self, request, pk):
+        sotish = get_object_or_404(Sotish, id=pk)
+        form = SotishForm(request.POST, instance=sotish)
+        
+        try:
+            # GPS va mashina ma'lumotlarini olish
+            gps_ids = request.POST.getlist('gps_id')
+            sim_kartalar = request.POST.getlist('sim_karta')
+            mashina_turlari = request.POST.getlist('mashina_turi')
+            davlat_raqamlari = request.POST.getlist('davlat_raqami')
+
+            print("Kelgan ma'lumotlar:")
+            print("GPS IDs:", gps_ids)
+            print("SIM kartalar:", sim_kartalar)
+            print("Mashina turlari:", mashina_turlari)
+            print("Davlat raqamlari:", davlat_raqamlari)
+
+            if form.is_valid():
+                # Eski GPS va mashina ma'lumotlarini o'chirish
+                old_gps_list = list(sotish.gps_id.all())
+                print("Eski GPS lar:", [g.id for g in old_gps_list])
+                
+                for old_gps in old_gps_list:
+                    old_gps.sotildi_sotilmadi = False
+                    old_gps.save()
+                
+                sotish.gps_id.clear()
+                sotish.mashina_malumotlari.all().delete()
+
+                # Sotish obyektini yangilash
+                sotish = form.save(commit=False)
+
+                def format_number(value):
+                    if not value:
+                        return 0
+                    # Vergul va probellarni olib tashlash
+                    value = value.replace(',', '').replace(' ', '')
+                    try:
+                        return int(value)
+                    except ValueError:
+                        return 0
+
+                sotish.summasi = format_number(request.POST.get('summasi', '0'))
+                sotish.naqd = format_number(request.POST.get('naqd', '0'))
+                sotish.karta = format_number(request.POST.get('karta', '0'))
+                sotish.bank_schot = format_number(request.POST.get('bank_schot', '0'))
+                sotish.master_summasi = format_number(request.POST.get('master_summasi', '0'))
+
+                # SIM kartalarni vergul bilan ajratib saqlash
+                sotish.sim_karta = ', '.join(filter(None, sim_kartalar))
+                sotish.save()
+
+                # Yangi GPS va mashina ma'lumotlarini saqlash
+                for i in range(len(gps_ids)):
+                    try:
+                        gps_id = gps_ids[i]
+                        if gps_id:  # Agar GPS ID bo'sh bo'lmasa
+                            print(f"GPS {i} - ID: {gps_id}")
+                            gps = Sklad.objects.get(id=gps_id)
+                            gps.sotildi_sotilmadi = True
+                            gps.save()
+                            sotish.gps_id.add(gps)
+                            
+                            # Mashina ma'lumotlarini saqlash
+                            if i < len(mashina_turlari) and i < len(davlat_raqamlari):
+                                MashinaMalumoti.objects.create(
+                                    sotish=sotish,
+                                    gps=gps,
+                                    mashina_turi=mashina_turlari[i],
+                                    davlat_raqami=davlat_raqamlari[i]
+                                )
+                                print(f"Mashina ma'lumotlari saqlandi: {mashina_turlari[i]} - {davlat_raqamlari[i]}")
+                    except Exception as e:
+                        print(f"GPS {i} uchun xatolik: {str(e)}")
+
+                messages.success(request, "Sotish muvaffaqiyatli yangilandi!")
+                return redirect('sotish_list')
+            else:
+                print("Forma xatoliklari:", form.errors)
+                messages.error(request, "Forma to'g'ri to'ldirilmagan!")
+        
         except Exception as e:
+            print("Asosiy xatolik:", str(e))
             messages.error(request, f"Xatolik yuz berdi: {str(e)}")
-            return redirect('sotish_update', pk=pk)
+        
+        return render(request, 'sotish_update.html', {
+            'form': form,
+            'sotish': sotish,
+            'mavjud_gpslar': Sklad.objects.filter(Q(sotildi_sotilmadi=False) | Q(id__in=sotish.gps_id.all()))
+        })
 
 class SotishDeleteView(LoginRequiredMixin, View):
     def post(self, request, pk):
-        sotish = Sotish.objects.get(pk=pk)
+        try:
+            sotish = get_object_or_404(Sotish, pk=pk)
+            
+            # Sklad bilan bog'liq GPSlarni qayta "sotilmadi" holatiga o'zgartirish
+            gpslar = sotish.gps_id.all()
+            for gps in gpslar:
+                gps.sotildi_sotilmadi = False
+                gps.save()
+            
+            # Mashina ma'lumotlarini o'chirish
+            sotish.mashina_malumotlari.all().delete()
+            
+            # Sotishni o'chirish
+            sotish.delete()
+            messages.success(request, "Sotish muvaffaqiyatli o'chirildi!")
+        except Exception as e:
+            print("Sotishni o'chirishda xatolik:", str(e))
+            messages.error(request, f"Sotishni o'chirishda xatolik yuz berdi: {str(e)}")
         
-        # Sklad bilan bog'liq GPSlarni qayta "sotilmadi" holatiga o'zgartirish
-        gpslar = sotish.gps_id.all()
-        gpslar.update(sotildi_sotilmadi=False)
-        
-        # Sotishni o'chirish
-        sotish.delete()
         return redirect('sotish_list')
     
 class RasxodListView(LoginRequiredMixin, View):
@@ -383,13 +451,16 @@ class MijozlarView(LoginRequiredMixin, TemplateView):
             
             # Har bir GPS va SIM karta uchun qator yaratish
             for i, (gps, sim) in enumerate(zip(gpslar, sim_kartalar)):
+                # GPS ga tegishli mashina ma'lumotlarini olish
+                mashina = mijoz.mashina_malumotlari.filter(gps=gps).first()
+                
                 mijozlar_data.append({
                     'id': mijoz.id,  # Mijoz ID si
                     'mijoz': mijoz.mijoz if i == 0 else '',
                     'tel_raqam': mijoz.mijoz_tel_raqam if i == 0 else '',
                     'username': mijoz.username if i == 0 else '',
                     'password': mijoz.password if i == 0 else '',
-                    'dasturiy_taminot_nomi': str(mijoz.dasturiy_taminot) if mijoz.dasturiy_taminot and i == 0 else '',  # O'zgartirildi
+                    'dasturiy_taminot_nomi': str(mijoz.dasturiy_taminot) if mijoz.dasturiy_taminot and i == 0 else '',
                     'abonent_tulov': mijoz.abonent_tulov if i == 0 else '',
                     'sana': mijoz.sana.strftime('%Y-%m-%d') if mijoz.sana and i == 0 else '',
                     'summasi': mijoz.summasi if i == 0 else '',
@@ -399,7 +470,9 @@ class MijozlarView(LoginRequiredMixin, TemplateView):
                     'master': mijoz.master if i == 0 else '',
                     'master_summasi': mijoz.master_summasi if i == 0 else '',
                     'gps': gps,
-                    'sim_karta': sim,
+                    'sim_karta': sim.strip() if sim else '',  # Probellarni olib tashlash
+                    'mashina_turi': mashina.mashina_turi if mashina else '',  # Mashina turi
+                    'davlat_raqami': mashina.davlat_raqami if mashina else '',  # Davlat raqami
                     'rowspan': len(gpslar) if i == 0 else 0,
                     'first_row': i == 0  # Birinchi qator uchun belgi
                 })

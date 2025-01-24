@@ -2,8 +2,6 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.core.validators import MinValueValidator, MaxValueValidator
 from datetime import datetime
-from django.db import models
-from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.hashers import make_password
 
 # Pozitsiyalar uchun choices
@@ -56,11 +54,13 @@ class Rasxod(models.Model):
 
     def __str__(self):
         return f'{self.rasxod_nomi} - {self.sana}'
+
 class DasturiyTaminot(models.Model):
     dasturiy_taminot_nomi = models.TextField()
 
     def __str__(self):
         return f'{self.dasturiy_taminot_nomi}'
+
 # Sotish Model
 class Sotish(models.Model):
     mijoz = models.CharField(max_length=255)
@@ -82,7 +82,18 @@ class Sotish(models.Model):
     def __str__(self):
         return f'{self.mijoz} - {self.sana}'
 
+class MashinaMalumoti(models.Model):
+    sotish = models.ForeignKey(Sotish, on_delete=models.CASCADE, related_name='mashina_malumotlari')
+    gps = models.ForeignKey(Sklad, on_delete=models.CASCADE)
+    mashina_turi = models.CharField(max_length=255)
+    davlat_raqami = models.CharField(max_length=20)
+    
+    def __str__(self):
+        return f"{self.gps.gps_id} - {self.mashina_turi} ({self.davlat_raqami})"
 
+    class Meta:
+        verbose_name = "Mashina ma'lumoti"
+        verbose_name_plural = "Mashina ma'lumotlari"
 
 class Bugalteriya(models.Model):
     sotish = models.ForeignKey('Sotish', on_delete=models.CASCADE)  # Mijoz

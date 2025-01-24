@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load custom_filters %}
-
+{% load humanize %}
 {% block content %}
 <div class="min-h-screen bg-gray-50 py-8">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -56,11 +56,11 @@
                         <div class="space-y-2 text-sm">
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Oyda to'lamaganlar:</span>
-                                <span class="font-medium text-red-600">{{ stats.tolov.oylik_tolamaganlar }}</span>
+                                <span class="font-medium text-red-600">{{ stats.tolov.oylik_tolamaganlar|intcomma }}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Jami to'lamaganlar:</span>
-                                <span class="font-medium text-red-600">{{ stats.tolov.jami_tolamaganlar }}</span>
+                                <span class="font-medium text-red-600">{{ stats.tolov.jami_tolamaganlar|intcomma }}</span>
                             </div>
                         </div>
                     </div>
@@ -77,23 +77,23 @@
                         <div class="space-y-2 text-sm">
                             <div class="flex justify-between">
                                 <span class="text-gray-600">O'tgan oy skladdagi:</span>
-                                <span class="font-medium">{{ stats.gps.otgan_oy_sklad }}</span>
+                                <span class="font-medium">{{ stats.gps.otgan_oy_sklad | intcomma }}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Hozir skladda bor:</span>
-                                <span class="font-medium">{{ stats.gps.hozir_skladda_bor }}</span>
+                                <span class="font-medium">{{ stats.gps.hozir_skladda_bor | intcomma }}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Oyda sotilgan:</span>
-                                <span class="font-medium text-green-600">{{ stats.gps.oylik_sotilgan }}</span>
+                                <span class="font-medium text-green-600">{{ stats.gps.oylik_sotilgan | intcomma }}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Jami sotilgan:</span>
-                                <span class="font-medium text-blue-600">{{ stats.gps.jami_sotilgan }}</span>
+                                <span class="font-medium text-blue-600">{{ stats.gps.jami_sotilgan | intcomma }}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-600">SIM kartalar:</span>
-                                <span class="font-medium">{{ stats.sim.oylik }}</span>
+                                <span class="font-medium">{{ stats.sim.oylik | intcomma }}</span>
                             </div>
                         </div>
                     </div>
@@ -110,19 +110,19 @@
                         <div class="space-y-2 text-sm">
                             <div class="flex justify-between">
                                 <span class="text-gray-600">IMG tushum:</span>
-                                <span class="font-medium text-green-600">{{ stats.summa.img.jami|floatformat:0 }}</span>
+                                <span class="font-medium text-green-600">{{ stats.summa.img.jami|floatformat:0 | intcomma }}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Sinotrack tushum:</span>
-                                <span class="font-medium text-green-600">{{ stats.summa.sinotrack.jami|floatformat:0 }}</span>
+                                <span class="font-medium text-green-600">{{ stats.summa.sinotrack.jami|floatformat:0 | intcomma }}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Abonent to'lov:</span>
-                                <span class="font-medium text-blue-600">{{ stats.summa.oylik_abonent|floatformat:0 }}</span>
+                                <span class="font-medium text-blue-600">{{ stats.summa.oylik_abonent|floatformat:0 | intcomma }}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-600">IMG abonent:</span>
-                                <span class="font-medium text-blue-600">{{ stats.summa.img.abonent|floatformat:0 }}</span>
+                                <span class="font-medium text-blue-600">{{ stats.summa.img.abonent|floatformat:0    | intcomma }}</span>
                             </div>
                         </div>
                     </div>
