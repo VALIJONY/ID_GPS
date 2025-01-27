@@ -2,9 +2,6 @@ asgiref
 Django
 django-admin-interface
 django-colorfield
-django-grappelli
-django-suit
-et_xmlfile
 numpy
 openpyxl
 pandas
@@ -15,8 +12,5 @@ PyJWT
 python-dateutil
 python-slugify
 pytz
-six
 sqlparse
-text-unidecode
-typing_extensions
 tzdata
