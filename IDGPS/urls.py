@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import Loginview,Home,LogoutView,  RasxodAddView, RasxodDeleteView, RasxodUpdateView,SkladView,SkladAddView,sklad_list,SotishListView,SotishAddView,SotishUpdateView,SotishDeleteView,RasxodListView,MijozlarView,SkladUpdateView,SkladDeleteView,UpdateBugalteriyaView,StatistikaView,BugalteriyaView,HodimCreateView,HodimUpdateView,HodimDeleteView,HodimListView,NoteAddView,NoteView,NoteEditView,NoteDeleteView
+from .views import Loginview,Home,LogoutView,  RasxodAddView, RasxodDeleteView, RasxodUpdateView,SkladView,SkladAddView,sklad_list,SotishListView,SotishAddView,SotishUpdateView,SotishDeleteView,RasxodListView,MijozlarView,SkladUpdateView,SkladDeleteView,UpdateBugalteriyaView,StatistikaView,BugalteriyaView,HodimCreateView,HodimUpdateView,HodimDeleteView,HodimListView,NoteAddView,NoteView,NoteEditView,NoteDeleteView,GPSAddExcelView
 urlpatterns = [
     path('',Loginview.as_view(),name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
@@ -30,4 +30,5 @@ urlpatterns = [
     path('note/add/',NoteAddView.as_view(),name='note-add'),
     path('note/update/<int:pk>/',NoteEditView.as_view(),name='note-update'),
     path('note/delete/<int:pk>/',NoteDeleteView.as_view(),name='note-delete'),
+    path('sklad/add-excel/', GPSAddExcelView.as_view(), name='gps-add-excel'),
 ]

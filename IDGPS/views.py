@@ -18,6 +18,10 @@ from django.db.models import Q
 from itertools import zip_longest
 from django.db import models
 import json
+import pandas as pd
+import openpyxl
+from openpyxl.styles import Font, PatternFill
+from django.http import HttpResponse
 
 class Loginview(LoginView):
     template_name = 'registration/login.html'  
@@ -397,7 +401,9 @@ class SotishDeleteView(LoginRequiredMixin, View):
             messages.error(request, f"Sotishni o'chirishda xatolik yuz berdi: {str(e)}")
         
         return redirect('sotish_list')
-    
+
+
+
 class RasxodListView(LoginRequiredMixin, View):
     def get(self, request):
         rasxodlar = Rasxod.objects.all()
@@ -453,7 +459,7 @@ class MijozlarView(LoginRequiredMixin, TemplateView):
             for i, (gps, sim) in enumerate(zip(gpslar, sim_kartalar)):
                 # GPS ga tegishli mashina ma'lumotlarini olish
                 mashina = mijoz.mashina_malumotlari.filter(gps=gps).first()
-                
+                jami_summa=mijoz.summasi+mijoz.master_summasi+mijoz.abonent_tulov*mijoz.gps_id.count()
                 mijozlar_data.append({
                     'id': mijoz.id,  # Mijoz ID si
                     'mijoz': mijoz.mijoz if i == 0 else '',
@@ -474,7 +480,8 @@ class MijozlarView(LoginRequiredMixin, TemplateView):
                     'mashina_turi': mashina.mashina_turi if mashina else '',  # Mashina turi
                     'davlat_raqami': mashina.davlat_raqami if mashina else '',  # Davlat raqami
                     'rowspan': len(gpslar) if i == 0 else 0,
-                    'first_row': i == 0  # Birinchi qator uchun belgi
+                    'first_row': i == 0,  # Birinchi qator uchun belgi
+                    'jami_summa': jami_summa
                 })
 
         context['mijozlar_data'] = mijozlar_data
@@ -518,7 +525,17 @@ class StatistikaView(LoginRequiredMixin, TemplateView):
                 models.Q(yil=year, oy__in=self.oylar[max(0, month-3):month]) |
                 models.Q(yil=prev_year, oy__in=self.oylar[9:]) if month <= 3 else models.Q(),
                 abonent_tolov=False
-            ).values('sotish').distinct().count()
+            ).values('gps').distinct().count(),
+            'oylik_tolaganlar': Bugalteriya.objects.filter(
+                yil=year,
+                oy=self.oylar[month-1],
+                abonent_tolov=True
+            ).count(),
+            'jami_tolaganlar': Bugalteriya.objects.filter(
+                models.Q(yil=year, oy__in=self.oylar[max(0, month-3):month]) |
+                models.Q(yil=prev_year, oy__in=self.oylar[9:]) if month <= 3 else models.Q(),
+                abonent_tolov=True
+            ).values('gps').distinct().count()
         }
 
         # GPS qurilmalari statistikasi
@@ -557,26 +574,12 @@ class StatistikaView(LoginRequiredMixin, TemplateView):
             ).aggregate(total_sim=models.Sum('sim_count'))['total_sim'] or 0
         }
 
-        # Summalar statistikasi
-        img_sotishlar = Sotish.objects.filter(
-            sana__year=year,
-            sana__month=month,
-            dasturiy_taminot__dasturiy_taminot_nomi='IMG'
-        ).prefetch_related('gps_id')
-        
+        # Summalar statistikasi    
         summa_stats = {
-            'img': {
-                'jami': img_sotishlar.aggregate(total=models.Sum('summasi'))['total'] or 0,
-                # Har bir mijozning GPS soniga qarab abonent to'lovni hisoblash
-                'abonent': sum(sotish.abonent_tulov * len(sotish.gps_id.all()) for sotish in img_sotishlar)
-            },
-            'sinotrack': {
-                'jami': Sotish.objects.filter(
-                    sana__year=year,
-                    sana__month=month,
-                    dasturiy_taminot__dasturiy_taminot_nomi='Sinotrack'
-                ).aggregate(total=models.Sum('summasi'))['total'] or 0
-            },
+            'oylik_umumiy_summa': Sotish.objects.filter(
+                sana__year=year,
+                sana__month=month
+            ).aggregate(total=models.Sum('summasi'))['total'] or 0,
             'oylik_abonent': Bugalteriya.objects.filter(
                 yil=year,
                 oy=self.oylar[month-1],
@@ -837,3 +840,135 @@ class NoteDeleteView(LoginRequiredMixin, View):
             return redirect('note-list')
         note.delete()
         return redirect('note-list')
+
+
+class GPSAddExcelView(LoginRequiredMixin, View):
+    template_name = 'sklad.html'
+
+    def get(self, request):
+        # Excel shablonini yaratish
+        if request.GET.get('download_template'):
+            # Excel fayl yaratish
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = "GPS Ma'lumotlari"
+
+            # Ustun nomlari
+            headers = ['gps_id', 'olingan_odam', 'tel_raqam', 'summa_prixod', 'olingan_sana']
+            for col, header in enumerate(headers, 1):
+                cell = ws.cell(row=1, column=col)
+                cell.value = header
+                cell.font = openpyxl.styles.Font(bold=True)
+                cell.fill = openpyxl.styles.PatternFill(start_color="CCCCCC", end_color="CCCCCC", fill_type="solid")
+
+            # Namuna ma'lumotlar
+            sample_data = [
+                ['GPS001', 'Ali Valiyev', '+998901234567', 100000, '2025-01-27'],
+                ['GPS002', 'Vali Aliyev', '+998907654321', 150000, '2025-01-27']
+            ]
+            
+            for row_idx, row_data in enumerate(sample_data, 2):
+                for col_idx, value in enumerate(row_data, 1):
+                    cell = ws.cell(row=row_idx, column=col_idx)
+                    cell.value = value
+
+            # Ustun kengliklari
+            ws.column_dimensions['A'].width = 15  # gps_id
+            ws.column_dimensions['B'].width = 25  # olingan_odam
+            ws.column_dimensions['C'].width = 15  # tel_raqam
+            ws.column_dimensions['D'].width = 15  # summa_prixod
+            ws.column_dimensions['E'].width = 15  # olingan_sana
+
+            # Excel faylni saqlash va yuborish
+            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response['Content-Disposition'] = 'attachment; filename=gps_template.xlsx'
+            wb.save(response)
+            return response
+
+        return render(request, self.template_name, {'skladlist': Sklad.objects.all()})
+
+    def post(self, request):
+        if not request.user.is_superuser:
+            messages.error(request, "Sizda bunday huquq yo'q!")
+            return redirect('sklad-list')
+            
+        try:
+            excel_file = request.FILES.get('excel_file')
+            if not excel_file:
+                messages.error(request, "Excel fayl tanlanmagan!")
+                return redirect('sklad-list')
+
+            # Excel faylni tekshirish
+            if not excel_file.name.endswith(('.xlsx', '.xls')):
+                messages.error(request, "Noto'g'ri fayl formati. Faqat .xlsx yoki .xls fayllar qabul qilinadi!")
+                return redirect('sklad-list')
+
+            # Excel faylni o'qish
+            df = pd.read_excel(excel_file)
+            required_columns = ['gps_id', 'olingan_odam', 'tel_raqam', 'summa_prixod', 'olingan_sana']
+            
+            # Ustunlar mavjudligini tekshirish
+            missing_columns = [col for col in required_columns if col not in df.columns]
+            if missing_columns:
+                messages.error(request, f"Excel faylda quyidagi ustunlar mavjud emas: {', '.join(missing_columns)}")
+                return redirect('sklad-list')
+
+            success_count = 0
+            error_count = 0
+            errors = []
+
+            # Excel fayldagi ma'lumotlarni bazaga saqlash
+            for index, row in df.iterrows():
+                try:
+                    # Bo'sh qatorlarni o'tkazib yuborish
+                    if pd.isna(row['gps_id']) or str(row['gps_id']).strip() == '':
+                        continue
+
+                    # GPS ID ni tekshirish
+                    gps_id = str(row['gps_id']).strip()
+                    if Sklad.objects.filter(gps_id=gps_id).exists():
+                        errors.append(f"GPS ID {gps_id} allaqachon mavjud!")
+                        error_count += 1
+                        continue
+
+                    # Ma'lumotlarni tozalash
+                    olingan_odam = str(row['olingan_odam']).strip() if not pd.isna(row['olingan_odam']) else ''
+                    tel_raqam = str(row['tel_raqam']).strip() if not pd.isna(row['tel_raqam']) else ''
+                    
+                    try:
+                        summa_prixod = float(row['summa_prixod'])
+                    except (ValueError, TypeError):
+                        summa_prixod = 0
+                        
+                    try:
+                        olingan_sana = pd.to_datetime(row['olingan_sana']).date()
+                    except:
+                        olingan_sana = datetime.now().date()
+
+                    # Yangi GPS qo'shish
+                    Sklad.objects.create(
+                        gps_id=gps_id,
+                        olingan_odam=olingan_odam,
+                        tel_raqam=tel_raqam,
+                        summa_prixod=summa_prixod,
+                        olingan_sana=olingan_sana,
+                        sotildi_sotilmadi=False
+                    )
+                    success_count += 1
+
+                except Exception as e:
+                    errors.append(f"Qator {index + 2}: {str(e)}")
+                    error_count += 1
+
+            # Natijalarni xabar qilish
+            if success_count > 0:
+                messages.success(request, f"{success_count} ta GPS muvaffaqiyatli qo'shildi!")
+            if error_count > 0:
+                messages.error(request, f"{error_count} ta xatolik yuz berdi!")
+                for error in errors:
+                    messages.error(request, error)
+
+        except Exception as e:
+            messages.error(request, f"Xatolik yuz berdi: {str(e)}")
+
+        return redirect('sklad-list')

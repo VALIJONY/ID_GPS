@@ -1,71 +1,108 @@
 {% extends 'base.html'%}
+{% load humanize %}
+{% load static %}
 {%block content%}
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SKLAD</title>
-</head>
-<body>
-    {%if request.path != '/sklad/add/' %}
-    <a href="{% url 'skladadd' %}"><button class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">GPS QO`SHISH</button></a>
-    {%endif%}
-    {%if request.path == '/sklad/add/' %}
-    <a href="{% url 'sklad-list' %}"><button class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">Orqaga qaytish</button></a>
-    {%endif%}
+<div class="container mx-auto p-3">
+    <!-- Yuqori panel -->
+    {% if request.path != '/sklad/add/' %}
+    <div class="bg-white rounded-lg shadow-sm p-2">
+        <div class="flex items-center space-x-3 overflow-x-auto whitespace-nowrap">
+            <!-- GPS qo'shish tugmasi -->
+            <a href="{% url 'skladadd' %}" class="inline-flex items-center bg-blue-500 text-white text-sm py-1.5 px-3 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 shrink-0">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                GPS qo'shish
+            </a>
 
+            <!-- Qidiruv -->
+            <div class="flex-grow min-w-[180px]">
+                <input type="text" 
+                    id="search-input" 
+                    class="w-full text-sm py-1.5 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="GPS ID, sana yoki olingan odam bo'yicha qidiring..." 
+                    oninput="filterTable()">
+            </div>
 
-{% if request.path != '/sklad/add/' %}
-    <div class="container mx-auto mt-10">
-        <div class="mb-4">
-            <input 
-                type="text" 
-                id="search-input" 
-                class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="GPS ID, sana yoki olingan odam bo'yicha qidiring..." 
-                oninput="filterTable()">
+            <!-- Filtrlash -->
+            <form method="GET" action="{% url 'filter-sklad' %}" class="flex items-center space-x-2 shrink-0">
+                <select name="status" class="text-sm py-1.5 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">Barcha</option>
+                    <option value="sold" {% if request.GET.status == "sold" %}selected{% endif %}>Sotilgan</option>
+                    <option value="unsold" {% if request.GET.status == "unsold" %}selected{% endif %}>Sotilmagan</option>
+                </select>
+                <button type="submit" class="bg-blue-500 text-white text-sm py-1.5 px-3 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    Filtrlash
+                </button>
+            </form>
+
+            <!-- Excel import (faqat admin uchun) -->
+            {% if request.user.is_superuser %}
+            <form method="POST" action="{% url 'gps-add-excel' %}" enctype="multipart/form-data" class="flex items-center space-x-2 shrink-0">
+                {% csrf_token %}
+                <div class="relative">
+                    <input type="file" name="excel_file" accept=".xlsx, .xls" class="hidden" id="excel_file">
+                    <label for="excel_file" class="cursor-pointer inline-flex items-center px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <svg class="w-4 h-4 mr-1.5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        <span id="file_name" class="text-gray-700">Excel fayl</span>
+                    </label>
+                </div>
+                <button type="submit" class="bg-green-500 text-white text-sm py-1.5 px-3 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500">
+                    Import
+                </button>
+                <a href="{% url 'gps-add-excel' %}?download_template=1" class="text-blue-500 hover:text-blue-700 text-sm">
+                    Shablon
+                </a>
+            </form>
+            {% endif %}
         </div>
-        <form method="GET" action="{% url 'filter-sklad' %}">
-        <select name="status" class="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-4">
-            <option value="">Barcha</option>
-            <option value="sold" {% if request.GET.status == "sold" %}selected{% endif %}>Sotilgan</option>
-            <option value="unsold" {% if request.GET.status == "unsold" %}selected{% endif %}>Sotilmagan</option>
-        </select>
-    
-        <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
-            Filtrlash
-        </button>
-        {%endif%}
-    {%if request.path != '/sklad/add/'%}
-    </form>
+    </div>
+    {% endif %}
+
+    <!-- Orqaga qaytish -->
+    {% if request.path == '/sklad/add/' %}
+    <div class="mb-6">
+        <a href="{% url 'sklad-list' %}">
+            <button class="bg-blue-500 text-white text-sm py-1.5 px-3 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                ← Orqaga qaytish
+            </button>
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Asosiy kontent -->
+    {% if request.path != '/sklad/add/' %}
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
         <table class="min-w-full table-auto border-collapse border border-gray-300">
             <thead>
                 <tr class="bg-blue-500 text-white">
-                    <th class="px-4 py-2 border">GPS ID</th>
-                    <th class="px-4 py-2 border">Olingan odam</th>
-                    <th class="px-4 py-2 border">Telefon raqam</th>
+                    <th class="px-3 py-1.5 border">GPS ID</th>
+                    <th class="px-3 py-1.5 border">Olingan odam</th>
+                    <th class="px-3 py-1.5 border">Telefon raqam</th>
                     {% if request.user.is_superuser %}
-                    <th class="px-4 py-2 border">Summa</th>
+                    <th class="px-3 py-1.5 border">Summa</th>
                     {%endif%}
-                    <th class="px-4 py-2 border">Olingan sana</th>
-                    <th class="px-4 py-2 border">Holat</th>
+                    <th class="px-3 py-1.5 border">Olingan sana</th>
+                    <th class="px-3 py-1.5 border">Holat</th>
                     {% if request.user.is_superuser %}
-                    <th class="px-4 py-2 border">Tahrirlash</th>
-                    <th class="px-4 py-2 border">O'chirish</th>
+                    <th class="px-3 py-1.5 border">Tahrirlash</th>
+                    <th class="px-3 py-1.5 border">O'chirish</th>
                     {% endif %}
                 </tr>
             </thead>
             <tbody id="sklad-table-body">
                 {% for item in skladlist %}
                 <tr class="hover:bg-gray-100">
-                    <td class="px-4 py-2 border">{{ item.gps_id }}</td>
-                    <td class="px-4 py-2 border">{{ item.olingan_odam }}</td>
-                    <td class="px-4 py-2 border">{{ item.tel_raqam }}</td>
+                    <td class="px-3 py-1.5 border">{{ item.gps_id }}</td>
+                    <td class="px-3 py-1.5 border">{{ item.olingan_odam }}</td>
+                    <td class="px-3 py-1.5 border">{{ item.tel_raqam }}</td>
                     {% if request.user.is_superuser %}
-                    <td class="px-4 py-2 border">{{ item.summa_prixod }}</td>
+                    <td class="px-3 py-1.5 border">{{ item.summa_prixod | intcomma }}</td>
                     {%endif%}
-                    <td class="px-4 py-2 border">{{ item.olingan_sana|date:"d.m.Y" }}</td>
-                    <td class="px-4 py-2 border">
+                    <td class="px-3 py-1.5 border">{{ item.olingan_sana|date:"d.m.Y" }}</td>
+                    <td class="px-3 py-1.5 border">
                         {% if item.sotildi_sotilmadi %}
                             <span class="text-green-600 font-semibold">Sotildi</span>
                         {% else %}
@@ -73,8 +110,8 @@
                         {% endif %}
                     </td>
                     {% if request.user.is_superuser %}
-                    <td class="px-4 py-2 border"><a href="{% url 'sklad_update' item.id %}"><button>Tahrirlash</button></a></td>
-                    <td class="px-4 py-2 border"><a href="{% url 'sklad_delete' item.id %}"><button>O'chirish</button></a></td>
+                    <td class="px-3 py-1.5 border"><a href="{% url 'sklad_update' item.id %}"><button class="text-sm">Tahrirlash</button></a></td>
+                    <td class="px-3 py-1.5 border"><a href="{% url 'sklad_delete' item.id %}"><button class="text-sm">O'chirish</button></a></td>
                     {% endif %}
                 </tr>
                 {% endfor %}
@@ -82,71 +119,49 @@
         </table>
     </div>
     {%endif%}
-{% if request.path == '/sklad/add/'%}
+
+    {% if request.path == '/sklad/add/'%}
     <div class="container mx-auto mt-10">
         <form method="POST" class="bg-white p-8 rounded-xl shadow-lg max-w-lg mx-auto">
             {% csrf_token %}
             <div id="gps-container">
                 <div class="mb-4 flex items-center gap-2">
                     <div class="flex-grow">
-                        <label for="gps_id" class="block text-gray-700 font-medium mb-2">GPS ID</label>
+                        <label for="gps_id" class="block text-gray-700 font-medium mb-2 text-sm">GPS ID</label>
                         {{ form.gps_id }}
                     </div>
                 </div>
             </div>
-            <button type="button" onclick="addGpsField()" class="mb-4 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600">
+            <button type="button" onclick="addGpsField()" class="mb-4 bg-green-500 text-white text-sm py-1.5 px-3 rounded-md hover:bg-green-600">
                 + GPS qo'shish
             </button>
             
 
+
             <div class="mb-4">
-                <label for="olingan_odam" class="block text-gray-700 font-medium mb-2">Olingan odam</label>
+                <label for="olingan_odam" class="block text-gray-700 font-medium mb-2 text-sm">Olingan odam</label>
                 {{ form.olingan_odam }}
             </div>
 
             <div class="mb-4">
-                <label for="phone" class="block text-gray-700 font-medium mb-2">Telefon raqam</label>
+                <label for="phone" class="block text-gray-700 font-medium mb-2 text-sm">Olgan odam telefon raqam</label>
                 {{ form.tel_raqam }}
             </div>
 
             <div class="mb-4">
-                <label for="summa_prixod" class="block text-gray-700 font-medium mb-2">Summa Prixod</label>
+                <label for="summa_prixod" class="block text-gray-700 font-medium mb-2 text-sm">Summa Prixod bitta gps uchun</label>
                 {{ form.summa_prixod }}
             </div>
 
             <div class="mb-4">
-                <label for="olingan_sana" class="block text-gray-700 font-medium mb-2">Olingan sana</label>
+                <label for="olingan_sana" class="block text-gray-700 font-medium mb-2 text-sm">Olingan sana</label>
                 {{ form.olingan_sana }}
             </div>
             
-            <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Saqlash</button>
+            <button type="submit" class="w-full bg-blue-600 text-white text-sm py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Saqlash</button>
         </form>
     </div>
-    
-    <!-- GPS qo'shish -->
-    <script>
-        let gpsCount = 1;
-        function addGpsField() {
-            gpsCount++;
-            const container = document.getElementById('gps-container');
-            const newField = document.createElement('div');
-            newField.className = 'mb-4 flex items-center gap-2';
-            newField.innerHTML = `
-                <div class="flex-grow">
-                    <label for="gps_id_${gpsCount}" class="block text-gray-700 font-medium mb-2">GPS ID ${gpsCount}</label>
-                    <input type="text" name="gps_id_${gpsCount}" id="gps_id_${gpsCount}" class="w-full p-2 border border-gray-300 rounded-lg">
-                </div>
-                <button type="button" onclick="removeGpsField(this)" class="h-10 mt-8 px-3 bg-red-500 text-white rounded-lg hover:bg-red-600">
-                    -
-                </button>
-            `;
-            container.appendChild(newField);
-        }
 
-        function removeGpsField(button) {
-            button.parentElement.remove();
-        }
-    </script>
 {%endif%}
 {% if message %}
   <!-- Alert message -->
@@ -160,44 +175,8 @@
   </div>
 
   {%endif%}
-    <script>
 
+    <script src="{% static 'js/skald.js' %}"></script>
 
-        function setTodayDate() {
-            const today = new Date();
-            const date = today.toISOString().split('T')[0];
-            document.getElementById('olingan_sana').value = date;
-        }
-
-        window.onload = function() {
-            setTodayDate();  // Olingan sana
-        };
-
-        function filterTable() {
-            const searchInput = document.getElementById('search-input').value.toLowerCase();
-            const tableRows = document.querySelectorAll('tbody tr');
-            
-            tableRows.forEach(row => {
-                const gpsCell = row.querySelector('td:first-child').textContent.toLowerCase();
-                const personCell = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-                const dateCell = row.querySelector('td:nth-child(5)').textContent.toLowerCase();
-                
-                if (gpsCell.includes(searchInput) || 
-                    dateCell.includes(searchInput) || 
-                    personCell.includes(searchInput)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-        }
-        
-       
-    </script>
-
-</body>
-</html>
-
-    {%endblock%}
-</body>
-</html>
+</div>
+{%endblock%}

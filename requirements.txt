@@ -1,5 +1,7 @@
 Django
 django-admin-interface
 django-colorfield
+pandas
+openpyxl
 pillow
 PyJWT

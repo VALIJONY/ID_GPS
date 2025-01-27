@@ -24,6 +24,7 @@
                     <th class="px-2 py-1 border text-xs">Qarz</th>
                     <th class="px-2 py-1 border text-xs">Master</th>
                     <th class="px-2 py-1 border text-xs">Master summasi</th>
+                    <th class="px-2 py-1 border text-xs">Jami summa</th>
                 </tr>
             </thead>
             <tbody>
@@ -49,6 +50,7 @@
                             <td class="px-2 py-1 border text-xs" rowspan="{{ item.rowspan }}">{{ item.karta|intcomma }}</td>
                             <td class="px-2 py-1 border text-xs" rowspan="{{ item.rowspan }}">{{ item.master }}</td>
                             <td class="px-2 py-1 border text-xs" rowspan="{{ item.rowspan }}">{{ item.master_summasi|intcomma }}</td>
+                            <td class="px-2 py-1 border text-xs" rowspan="{{ item.rowspan }}">{{ item.jami_summa|intcomma }}</td>
                         {% endif %}
                     </tr>
                 {% endfor %}
