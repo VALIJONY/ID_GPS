@@ -1,4 +1,3 @@
-asgiref
 Django
 django-admin-interface
 django-colorfield
@@ -6,11 +5,4 @@ numpy
 openpyxl
 pandas
 pillow
-pip
-psycopg2-binary
 PyJWT
-python-dateutil
-python-slugify
-pytz
-sqlparse
-tzdata
