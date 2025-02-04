@@ -108,8 +108,8 @@ class Bugalteriya(models.Model):
         validators=[MinValueValidator(2000), MaxValueValidator(datetime.now().year)],
         help_text="Yil 2000 va hozirgi yil orasida bo'lishi kerak."
     )
-    abonent_tolov = models.BooleanField(default=False)
-    sim_karta_tolov = models.BooleanField(default=False)
+    abonent_tolov = models.BooleanField(default=False, null=True)
+    sim_karta_tolov = models.BooleanField(default=False, null=True)
     izoh = models.TextField(blank=True, null=True)
 
     class Meta:

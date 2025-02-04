@@ -1,7 +1,6 @@
 Django
 django-admin-interface
 django-colorfield
-numpy
 openpyxl
 pandas
 pillow

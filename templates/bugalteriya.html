@@ -24,16 +24,10 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead>
                     <tr>
-                        <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Mijoz
-                        </th>
-                        <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            GPS
-                        </th>
+                        <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mijoz</th>
+                        <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">GPS</th>
                         {% for oy in oylar %}
-                        <th class="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" colspan="2">
-                            {{ oy }}
-                        </th>
+                        <th class="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" colspan="2">{{ oy }}</th>
                         {% endfor %}
                     </tr>
                     <tr>
@@ -65,16 +59,26 @@
                                         data-sotish-id="{{ item.sotish.id }}"
                                         data-gps-id="{{ gps_item.gps.id }}"
                                         data-oy="{{ oy }}"
+                                        data-yil="{{ current_year }}"
                                         data-type="abonent"
-                                        class="tolov-btn px-3 py-1 rounded-full text-sm font-medium cursor-pointer
-                                        {% if tolov.abonent.status %}
+                                        class="tolov-btn px-3 py-1 rounded-full text-sm font-medium
+                                        {% if tolov.abonent.status is True %}
                                             bg-green-100 text-green-800 hover:bg-green-200
-                                        {% else %}
+                                        {% elif tolov.abonent.status is False %}
                                             bg-red-100 text-red-800 hover:bg-red-200
+                                        {% else %}
+                                            bg-gray-100 text-gray-800 hover:bg-gray-200
                                         {% endif %}">
-                                        {{ tolov.abonent.status|yesno:"To'langan,To'lanmagan" }}
+                                        {% if tolov.abonent.status is True %}
+                                            To'langan
+                                        {% elif tolov.abonent.status is False %}
+                                            To'lanmagan
+                                        {% else %}
+                                            Null
+                                        {% endif %}
                                     </button>
                                 </td>
+                                
                                 <!-- SIM karta to'lovi -->
                                 <td class="px-2 py-4 whitespace-nowrap text-center">
                                     <button 
@@ -82,14 +86,23 @@
                                         data-sotish-id="{{ item.sotish.id }}"
                                         data-gps-id="{{ gps_item.gps.id }}"
                                         data-oy="{{ oy }}"
+                                        data-yil="{{ current_year }}"
                                         data-type="sim"
-                                        class="tolov-btn px-3 py-1 rounded-full text-sm font-medium cursor-pointer
-                                        {% if tolov.sim.status %}
+                                        class="tolov-btn px-3 py-1 rounded-full text-sm font-medium
+                                        {% if tolov.sim.status is True %}
                                             bg-green-100 text-green-800 hover:bg-green-200
-                                        {% else %}
+                                        {% elif tolov.sim.status is False %}
                                             bg-red-100 text-red-800 hover:bg-red-200
+                                        {% else %}
+                                            bg-gray-100 text-gray-800 hover:bg-gray-200
                                         {% endif %}">
-                                        {{ tolov.sim.status|yesno:"To'langan,To'lanmagan" }}
+                                        {% if tolov.sim.status is True %}
+                                            To'langan
+                                        {% elif tolov.sim.status is False %}
+                                            To'lanmagan
+                                        {% else %}
+                                            Null
+                                        {% endif %}
                                     </button>
                                 </td>
                                 {% endwith %}
@@ -103,104 +116,89 @@
     </div>
 </div>
 
-<!-- JavaScript for filter handling -->
-<script>
-    // Pass Django template variable to JavaScript
-    const currentYear = {{ current_year }};
-</script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-    const yearSelect = document.querySelector('select[name="yil"]');
-    
-    yearSelect.addEventListener('change', function() {
-        window.location.href = `?yil=${yearSelect.value}`;
-    });
+        // Yil filtrini boshqarish
+        const yearSelect = document.querySelector('select[name="yil"]');
+        yearSelect.addEventListener('change', function() {
+            window.location.href = `?yil=${yearSelect.value}`;
+        });
 
-    // To'lov tugmalarini boshqarish
-    document.querySelectorAll('.tolov-btn').forEach(button => {
-        button.addEventListener('click', async function() {
-            try {
-                const response = await fetch('/update_bugalteriya/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
-                    },
-                    body: JSON.stringify({
-                        tolov_id: this.dataset.tolovId || null,
-                        sotish_id: this.dataset.sotishId,
-                        gps_id: this.dataset.gpsId,
-                        oy: this.dataset.oy,
-                        yil: currentYear,  // Using the variable passed from the template
-                        type: this.dataset.type
-                    })
-                });
+        // To'lov tugmalarini boshqarish
+        document.querySelectorAll('.tolov-btn').forEach(button => {
+            button.addEventListener('click', async function() {
+                try {
+                    const response = await fetch('/update_bugalteriya/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify({
+                            tolov_id: this.dataset.tolovId || null,
+                            sotish_id: this.dataset.sotishId,
+                            gps_id: this.dataset.gpsId,
+                            oy: this.dataset.oy,
+                            yil: this.dataset.yil,
+                            type: this.dataset.type
+                        })
+                    });
 
-                const data = await response.json();
-                
-                if (!data.status) {
-                    alert(data.message || 'Xatolik yuz berdi');
-                    return;
-                }
-
-                // To'lov ID ni yangilash
-                if (data.tolov_id) {
-                    this.dataset.tolovId = data.tolov_id;
-                    // Qo'shni tugmaning tolov_id ni ham yangilash
-                    const siblingButton = this.dataset.type === 'abonent' ? 
-                        this.parentElement.nextElementSibling.querySelector('.tolov-btn') :
-                        this.parentElement.previousElementSibling.querySelector('.tolov-btn');
-                    if (siblingButton) {
-                        siblingButton.dataset.tolovId = data.tolov_id;
+                    const data = await response.json();
+                    
+                    if (!data.status) {
+                        alert(data.message);
+                        return;
                     }
-                }
 
-                // Tugma holatini yangilash
-                if (this.dataset.type === 'abonent') {
-                    if (data.abonent_status) {
-                        this.classList.remove('bg-red-100', 'text-red-800', 'hover:bg-red-200');
+                    // To'lov ID ni yangilash
+                    if (data.tolov_id) {
+                        this.dataset.tolovId = data.tolov_id;
+                    }
+
+                    // Tugma holatini yangilash
+                    const status = this.dataset.type === 'abonent' ? data.abonent_status : data.sim_status;
+                    
+                    // Eski classlarni o'chirish
+                    this.classList.remove(
+                        'bg-red-100', 'text-red-800', 'hover:bg-red-200',
+                        'bg-green-100', 'text-green-800', 'hover:bg-green-200',
+                        'bg-gray-100', 'text-gray-800', 'hover:bg-gray-200'
+                    );
+
+                    // Yangi classlarni qo'shish
+                    if (status === true) {
                         this.classList.add('bg-green-100', 'text-green-800', 'hover:bg-green-200');
                         this.textContent = "To'langan";
-                    } else {
-                        this.classList.remove('bg-green-100', 'text-green-800', 'hover:bg-green-200');
+                    } else if (status === false) {
                         this.classList.add('bg-red-100', 'text-red-800', 'hover:bg-red-200');
                         this.textContent = "To'lanmagan";
-                    }
-                } else {  // sim karta
-                    if (data.sim_status) {
-                        this.classList.remove('bg-red-100', 'text-red-800', 'hover:bg-red-200');
-                        this.classList.add('bg-green-100', 'text-green-800', 'hover:bg-green-200');
-                        this.textContent = "To'langan";
                     } else {
-                        this.classList.remove('bg-green-100', 'text-green-800', 'hover:bg-green-200');
-                        this.classList.add('bg-red-100', 'text-red-800', 'hover:bg-red-200');
-                        this.textContent = "To'lanmagan";
+                        this.classList.add('bg-gray-100', 'text-gray-800', 'hover:bg-gray-200');
+                        this.textContent = "Null";
                     }
+                    
+                } catch (error) {
+                    console.error('Xatolik:', error);
+                    alert('Xatolik yuz berdi');
                 }
-                
-            } catch (error) {
-                console.error('Xatolik:', error);
-                alert('Xatolik yuz berdi');
-            }
+            });
         });
     });
-});
 
-// CSRF token olish uchun funksiya
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
             }
         }
+        return cookieValue;
     }
-    return cookieValue;
-}
-
 </script>
 {% endblock %}

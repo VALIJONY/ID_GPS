@@ -532,9 +532,11 @@ class StatistikaView(LoginRequiredMixin, TemplateView):
                 abonent_tolov=True
             ).count(),
             'jami_tolaganlar': Bugalteriya.objects.filter(
-                models.Q(yil=year, oy__in=self.oylar[max(0, month-3):month]) |
-                models.Q(yil=prev_year, oy__in=self.oylar[9:]) if month <= 3 else models.Q(),
-                abonent_tolov=True
+                (
+                    models.Q(yil__lt=year) |  # oldingi yillar
+                    models.Q(yil=year, oy__lt=month)  # joriy yilning oldingi oylari
+                ),
+                abonent_tolov=True  # faqat to'langan abonentlar
             ).values('gps').distinct().count()
         }
 
@@ -626,28 +628,25 @@ class BugalteriyaView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # Joriy yilni olish
         now = datetime.now()
         selected_year = int(self.request.GET.get('yil', now.year))
         
-        # Barcha sotishlarni va GPS larni bir so'rovda olish
         sotishlar = (Sotish.objects
-                    .filter(sana__year=selected_year)
-                    .prefetch_related('gps_id')
-                    .order_by('-sana'))
-        
-        # Barcha to'lovlarni bir so'rovda olish
+               .filter(sana__year__lte=selected_year)
+               .prefetch_related('gps_id')
+               .distinct()
+               .order_by('-sana'))
+
         tolovlar = (Bugalteriya.objects
-                   .filter(sotish__in=sotishlar, yil=selected_year)
-                   .select_related('sotish', 'gps'))
+                 .filter(sotish__in=sotishlar)
+                 .filter(yil=selected_year)
+                 .select_related('sotish', 'gps'))
         
-        # To'lovlarni xotiraga olish
         tolovlar_dict = {}
         for tolov in tolovlar:
             key = (tolov.sotish_id, tolov.gps_id, tolov.oy)
             tolovlar_dict[key] = tolov
         
-        # Ma'lumotlarni tayyorlash
         bugalteriya_data = []
         for sotish in sotishlar:
             gps_data = []
@@ -658,11 +657,13 @@ class BugalteriyaView(LoginRequiredMixin, TemplateView):
                     oylik_tolovlar[oy] = {
                         'abonent': {
                             'status': tolov.abonent_tolov if tolov else False,
-                            'id': tolov.id if tolov else ''
+                            'id': tolov.id if tolov else '',
+                            'can_edit': self.request.user.is_superuser or (tolov.abonent_tolov is None if tolov else True)
                         },
                         'sim': {
                             'status': tolov.sim_karta_tolov if tolov else False,
-                            'id': tolov.id if tolov else ''
+                            'id': tolov.id if tolov else '',
+                            'can_edit': self.request.user.is_superuser or (tolov.sim_karta_tolov is None if tolov else True)
                         }
                     }
                 
@@ -680,7 +681,8 @@ class BugalteriyaView(LoginRequiredMixin, TemplateView):
             'bugalteriya_data': bugalteriya_data,
             'oylar': self.oylar,
             'current_year': selected_year,
-            'years': range(2020, now.year + 1)
+            'years': range(2020, now.year + 1),
+            'is_superuser': self.request.user.is_superuser
         })
         
         return context
@@ -700,21 +702,34 @@ class UpdateBugalteriyaView(LoginRequiredMixin, View):
             if tolov_id and tolov_id != 'null' and tolov_id != 'undefined':
                 tolov = get_object_or_404(Bugalteriya, id=tolov_id)
                 
-                # Faqat super admin to'langan to'lovni o'zgartira oladi
                 if tolov_type == 'abonent':
-                    if tolov.abonent_tolov and not request.user.is_superuser:
+                    current_status = tolov.abonent_tolov
+                    # Oddiy foydalanuvchi uchun: False -> True -> None
+                    # Superuser uchun: False -> True -> None -> False
+                    if current_status is False:
+                        tolov.abonent_tolov = True
+                    elif current_status is True:
+                        tolov.abonent_tolov = None
+                    elif current_status is None and request.user.is_superuser:
+                        tolov.abonent_tolov = False
+                    else:
                         return JsonResponse({
                             'status': False,
-                            'message': "Faqat super admin to'langan to'lovni o'zgartira oladi"
+                            'message': "Null holatdagi to'lovni faqat super admin o'zgartira oladi"
                         })
-                    tolov.abonent_tolov = not tolov.abonent_tolov
                 else:  # sim karta to'lovi
-                    if tolov.sim_karta_tolov and not request.user.is_superuser:
+                    current_status = tolov.sim_karta_tolov
+                    if current_status is False:
+                        tolov.sim_karta_tolov = True
+                    elif current_status is True:
+                        tolov.sim_karta_tolov = None
+                    elif current_status is None and request.user.is_superuser:
+                        tolov.sim_karta_tolov = False
+                    else:
                         return JsonResponse({
                             'status': False,
-                            'message': "Faqat super admin to'langan to'lovni o'zgartira oladi"
+                            'message': "Null holatdagi to'lovni faqat super admin o'zgartira oladi"
                         })
-                    tolov.sim_karta_tolov = not tolov.sim_karta_tolov
             
             # Yangi to'lov yaratish
             else:
@@ -724,7 +739,6 @@ class UpdateBugalteriyaView(LoginRequiredMixin, View):
                         'message': "To'lov uchun barcha ma'lumotlar to'liq emas"
                     })
 
-                # Mavjud to'lovni tekshirish
                 tolov = Bugalteriya.objects.filter(
                     sotish_id=sotish_id,
                     gps_id=gps_id,
@@ -732,7 +746,6 @@ class UpdateBugalteriyaView(LoginRequiredMixin, View):
                     yil=yil
                 ).first()
 
-                # Agar to'lov mavjud bo'lmasa, yangi yaratish
                 if not tolov:
                     sotish = get_object_or_404(Sotish, id=sotish_id)
                     gps = get_object_or_404(Sklad, id=gps_id)
@@ -741,15 +754,9 @@ class UpdateBugalteriyaView(LoginRequiredMixin, View):
                         gps=gps,
                         oy=oy,
                         yil=yil,
-                        abonent_tolov=False,
+                        abonent_tolov=False,  # Default False
                         sim_karta_tolov=False
                     )
-
-                # To'lov turini o'zgartirish
-                if tolov_type == 'abonent':
-                    tolov.abonent_tolov = True
-                else:  # sim karta to'lovi
-                    tolov.sim_karta_tolov = True
 
             # To'lovni saqlash
             tolov.save()
@@ -758,7 +765,8 @@ class UpdateBugalteriyaView(LoginRequiredMixin, View):
                 'status': True,
                 'tolov_id': tolov.id,
                 'abonent_status': tolov.abonent_tolov,
-                'sim_status': tolov.sim_karta_tolov
+                'sim_status': tolov.sim_karta_tolov,
+                'can_edit': request.user.is_superuser
             })
 
         except Exception as e:
@@ -766,7 +774,7 @@ class UpdateBugalteriyaView(LoginRequiredMixin, View):
                 'status': False,
                 'message': str(e)
             })
-
+            
 class HodimListView(LoginRequiredMixin, ListView):
     model = CustomUser
     template_name = 'hodim.html'
