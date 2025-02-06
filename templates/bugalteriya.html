@@ -61,15 +61,20 @@
                                         data-oy="{{ oy }}"
                                         data-yil="{{ current_year }}"
                                         data-type="abonent"
+                                        data-is-superuser="{{ request.user.is_superuser|yesno:'true,false' }}"
                                         class="tolov-btn px-3 py-1 rounded-full text-sm font-medium
-                                        {% if tolov.abonent.status is True %}
+                                        {% if tolov.tolov is None %}
+                                            bg-gray-100 text-gray-800 hover:bg-gray-200
+                                        {% elif tolov.abonent.status is True %}
                                             bg-green-100 text-green-800 hover:bg-green-200
                                         {% elif tolov.abonent.status is False %}
                                             bg-red-100 text-red-800 hover:bg-red-200
                                         {% else %}
                                             bg-gray-100 text-gray-800 hover:bg-gray-200
                                         {% endif %}">
-                                        {% if tolov.abonent.status is True %}
+                                        {% if tolov.tolov is None %}
+                                            To'lovni tasdiqlash
+                                        {% elif tolov.abonent.status is True %}
                                             To'langan
                                         {% elif tolov.abonent.status is False %}
                                             To'lanmagan
@@ -88,15 +93,20 @@
                                         data-oy="{{ oy }}"
                                         data-yil="{{ current_year }}"
                                         data-type="sim"
+                                        data-is-superuser="{{ request.user.is_superuser|yesno:'true,false' }}"
                                         class="tolov-btn px-3 py-1 rounded-full text-sm font-medium
-                                        {% if tolov.sim.status is True %}
+                                        {% if tolov.tolov is None %}
+                                            bg-gray-100 text-gray-800 hover:bg-gray-200
+                                        {% elif tolov.sim.status is True %}
                                             bg-green-100 text-green-800 hover:bg-green-200
                                         {% elif tolov.sim.status is False %}
                                             bg-red-100 text-red-800 hover:bg-red-200
                                         {% else %}
                                             bg-gray-100 text-gray-800 hover:bg-gray-200
                                         {% endif %}">
-                                        {% if tolov.sim.status is True %}
+                                        {% if tolov.tolov is None %}
+                                            To'lovni tasdiqlash
+                                        {% elif tolov.sim.status is True %}
                                             To'langan
                                         {% elif tolov.sim.status is False %}
                                             To'lanmagan
@@ -117,88 +127,125 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Yil filtrini boshqarish
-        const yearSelect = document.querySelector('select[name="yil"]');
-        yearSelect.addEventListener('change', function() {
-            window.location.href = `?yil=${yearSelect.value}`;
-        });
-
-        // To'lov tugmalarini boshqarish
-        document.querySelectorAll('.tolov-btn').forEach(button => {
-            button.addEventListener('click', async function() {
-                try {
-                    const response = await fetch('/update_bugalteriya/', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': getCookie('csrftoken')
-                        },
-                        body: JSON.stringify({
-                            tolov_id: this.dataset.tolovId || null,
-                            sotish_id: this.dataset.sotishId,
-                            gps_id: this.dataset.gpsId,
-                            oy: this.dataset.oy,
-                            yil: this.dataset.yil,
-                            type: this.dataset.type
-                        })
-                    });
-
-                    const data = await response.json();
-                    
-                    if (!data.status) {
-                        alert(data.message);
-                        return;
-                    }
-
-                    // To'lov ID ni yangilash
-                    if (data.tolov_id) {
-                        this.dataset.tolovId = data.tolov_id;
-                    }
-
-                    // Tugma holatini yangilash
-                    const status = this.dataset.type === 'abonent' ? data.abonent_status : data.sim_status;
-                    
-                    // Eski classlarni o'chirish
-                    this.classList.remove(
-                        'bg-red-100', 'text-red-800', 'hover:bg-red-200',
-                        'bg-green-100', 'text-green-800', 'hover:bg-green-200',
-                        'bg-gray-100', 'text-gray-800', 'hover:bg-gray-200'
-                    );
-
-                    // Yangi classlarni qo'shish
-                    if (status === true) {
-                        this.classList.add('bg-green-100', 'text-green-800', 'hover:bg-green-200');
-                        this.textContent = "To'langan";
-                    } else if (status === false) {
-                        this.classList.add('bg-red-100', 'text-red-800', 'hover:bg-red-200');
-                        this.textContent = "To'lanmagan";
-                    } else {
-                        this.classList.add('bg-gray-100', 'text-gray-800', 'hover:bg-gray-200');
-                        this.textContent = "Null";
-                    }
-                    
-                } catch (error) {
-                    console.error('Xatolik:', error);
-                    alert('Xatolik yuz berdi');
-                }
-            });
-        });
+document.addEventListener('DOMContentLoaded', function() {
+    // Yil filtrini boshqarish
+    const yearSelect = document.querySelector('select[name="yil"]');
+    yearSelect.addEventListener('change', function() {
+        window.location.href = `?yil=${yearSelect.value}`;
     });
 
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
+    // To'lov tugmalarini boshqarish
+    document.querySelectorAll('.tolov-btn').forEach(button => {
+        let clickCount = 0;  // Click sonini kuzatish uchun
+        
+        button.addEventListener('click', async function() {
+            try {
+                const isSuperuser = this.dataset.isSuperuser === 'true';
+                const currentStatus = this.textContent.trim();
+                const paymentType = this.dataset.type;
+                
+                // Oddiy user uchun click sonini tekshirish
+                if (!isSuperuser && clickCount >= 3) {
+                    alert("Siz to'lov holatini qayta o'zgartira olmaysiz");
+                    return;
                 }
+
+                let newStatus;
+                // Birinchi sikl (hamma uchun)
+                if (currentStatus === "To'lovni tasdiqlash") {
+                    newStatus = "To'lanmagan";
+                    clickCount = 1;
+                } else if (currentStatus === "To'lanmagan" && clickCount === 1) {
+                    newStatus = "To'langan";
+                    clickCount = 2;
+                } else if (currentStatus === "To'langan" && clickCount === 2) {
+                    newStatus = "Null";
+                    clickCount = 3;
+                } 
+                // Superuser uchun keyingi sikllar
+                else if (isSuperuser) {
+                    if (currentStatus === "Null") {
+                        newStatus = "To'lanmagan";
+                        clickCount = 1;
+                    } else if (currentStatus === "To'lanmagan") {
+                        newStatus = "To'langan";
+                        clickCount = 2;
+                    } else if (currentStatus === "To'langan") {
+                        newStatus = "Null";
+                        clickCount = 3;
+                    }
+                }
+
+                if (!newStatus) return;
+
+                const response = await fetch('/update_bugalteriya/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        tolov_id: this.dataset.tolovId || null,
+                        sotish_id: this.dataset.sotishId,
+                        gps_id: this.dataset.gpsId,
+                        oy: this.dataset.oy,
+                        yil: this.dataset.yil,
+                        type: paymentType,
+                        new_status: newStatus === "To'langan" ? true : 
+                                   newStatus === "To'lanmagan" ? false : null
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (!data.status) {
+                    alert(data.message);
+                    return;
+                }
+
+                // To'lov ID ni yangilash
+                if (data.tolov_id) {
+                    this.dataset.tolovId = data.tolov_id;
+                }
+
+                // Tugma holatini yangilash
+                this.classList.remove(
+                    'bg-red-100', 'text-red-800', 'hover:bg-red-200',
+                    'bg-green-100', 'text-green-800', 'hover:bg-green-200',
+                    'bg-gray-100', 'text-gray-800', 'hover:bg-gray-200'
+                );
+
+                if (newStatus === "To'langan") {
+                    this.classList.add('bg-green-100', 'text-green-800', 'hover:bg-green-200');
+                } else if (newStatus === "To'lanmagan") {
+                    this.classList.add('bg-red-100', 'text-red-800', 'hover:bg-red-200');
+                } else {
+                    this.classList.add('bg-gray-100', 'text-gray-800', 'hover:bg-gray-200');
+                }
+                
+                this.textContent = newStatus;
+                
+            } catch (error) {
+                console.error('Xatolik:', error);
+                alert('Xatolik yuz berdi');
+            }
+        });
+    });
+});
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
             }
         }
-        return cookieValue;
     }
+    return cookieValue;
+}
 </script>
 {% endblock %}

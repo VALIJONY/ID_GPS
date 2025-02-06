@@ -503,14 +503,14 @@ class StatistikaView(LoginRequiredMixin, TemplateView):
             'oldingidagi_aktiv': Sotish.objects.filter(
                 sana__year=prev_year,
                 sana__month=prev_month
-            ).count(),
+            ).aggregate(gps_count=models.Count('gps_id'))['gps_count'],
             'oylik_qoshilgan': Sotish.objects.filter(
                 sana__year=year,
                 sana__month=month
             ).aggregate(gps_count=models.Count('gps_id'))['gps_count'],
             'jami_aktiv': Sotish.objects.filter(
-                sana__year__lte=year,
-                sana__month__lte=month if year == datetime.now().year else 12
+                models.Q(sana__year__lt=year) |  # o'tgan yillarning hammasi
+                models.Q(sana__year=year, sana__month__lte=month)  # joriy yilning belgilangan oyigacha
             ).aggregate(gps_count=models.Count('gps_id'))['gps_count']
         }
 
@@ -520,26 +520,14 @@ class StatistikaView(LoginRequiredMixin, TemplateView):
                 yil=year,
                 oy=self.oylar[month-1],
                 abonent_tolov=False
-            ).count(),
-            'jami_tolamaganlar': Bugalteriya.objects.filter(
-                models.Q(yil=year, oy__in=self.oylar[max(0, month-3):month]) |
-                models.Q(yil=prev_year, oy__in=self.oylar[9:]) if month <= 3 else models.Q(),
-                abonent_tolov=False
-            ).values('gps').distinct().count(),
+            ).aggregate(gps_count=models.Count('gps_id'))['gps_count'],
             'oylik_tolaganlar': Bugalteriya.objects.filter(
                 yil=year,
                 oy=self.oylar[month-1],
                 abonent_tolov=True
-            ).count(),
-            'jami_tolaganlar': Bugalteriya.objects.filter(
-                (
-                    models.Q(yil__lt=year) |  # oldingi yillar
-                    models.Q(yil=year, oy__lt=month)  # joriy yilning oldingi oylari
-                ),
-                abonent_tolov=True  # faqat to'langan abonentlar
-            ).values('gps').distinct().count()
+            ).aggregate(gps_count=models.Count('gps_id'))['gps_count'],
         }
-
+        print(tolov_stats)
         # GPS qurilmalari statistikasi
         gps_stats = {
             'otgan_oy_sklad': Sklad.objects.filter(
@@ -656,15 +644,14 @@ class BugalteriyaView(LoginRequiredMixin, TemplateView):
                     tolov = tolovlar_dict.get((sotish.id, gps.id, oy))
                     oylik_tolovlar[oy] = {
                         'abonent': {
-                            'status': tolov.abonent_tolov if tolov else False,
+                            'status': tolov.abonent_tolov if tolov else None,  # None bo'lsa "To'lovni tasdiqlash" ko'rinadi
                             'id': tolov.id if tolov else '',
-                            'can_edit': self.request.user.is_superuser or (tolov.abonent_tolov is None if tolov else True)
                         },
                         'sim': {
-                            'status': tolov.sim_karta_tolov if tolov else False,
+                            'status': tolov.sim_karta_tolov if tolov else None,  # None bo'lsa "To'lovni tasdiqlash" ko'rinadi
                             'id': tolov.id if tolov else '',
-                            'can_edit': self.request.user.is_superuser or (tolov.sim_karta_tolov is None if tolov else True)
-                        }
+                        },
+                        'tolov': tolov  # Qo'shimcha maydon - tolov obyekti mavjudligini tekshirish uchun
                     }
                 
                 gps_data.append({
@@ -766,7 +753,6 @@ class UpdateBugalteriyaView(LoginRequiredMixin, View):
                 'tolov_id': tolov.id,
                 'abonent_status': tolov.abonent_tolov,
                 'sim_status': tolov.sim_karta_tolov,
-                'can_edit': request.user.is_superuser
             })
 
         except Exception as e:
