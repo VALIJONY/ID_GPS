@@ -882,10 +882,6 @@ class GPSAddExcelView(LoginRequiredMixin, View):
         return render(request, self.template_name, {'skladlist': Sklad.objects.all()})
 
     def post(self, request):
-        if not request.user.is_superuser:
-            messages.error(request, "Sizda bunday huquq yo'q!")
-            return redirect('sklad-list')
-            
         try:
             excel_file = request.FILES.get('excel_file')
             if not excel_file:
