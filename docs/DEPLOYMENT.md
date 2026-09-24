@@ -117,21 +117,33 @@ belgilang: `DJANGO_SECRET_KEY`, `DJANGO_ALLOWED_HOSTS`, kerak bo'lsa `DJANGO_DEB
 
 ## Migratsiyalar
 
+`0002_alter_bugalteriya_abonent_tolov_and_more` migratsiyasi modellar bilan migratsiyalar
+orasidagi farqni yopadi: `Bugalteriya.abonent_tolov` va `sim_karta_tolov` NULL qabul qiladi,
+`Note.sana` standart qiymati `date.today` bo'ladi. Toza bazada `0001` → `0002` muammosiz
+qo'llanadi va `makemigrations --check` hech qanday farq ko'rsatmaydi.
+
 > [!CAUTION]
-> Repodagi `IDGPS/migrations/0001_initial.py` joriy modellar bilan **to'liq mos emas**
-> (masalan, `Bugalteriya.abonent_tolov` va `sim_karta_tolov` modelda `null=True`,
-> migratsiyada esa NOT NULL). Oldingi `0002`/`0003` migratsiyalar repodan o'chirilgan,
-> lekin serverda qo'llangan bo'lishi mumkin.
+> Git tarixida avval `0002_alter_sklad_sotildi_sotilmadi` va `0003_bugalteriya`
+> migratsiyalari bo'lgan, keyin ular o'chirilib, `0001_initial` qayta yaratilgan. Agar
+> serverda o'sha eski fayllar yoki ularning `django_migrations` yozuvlari qolgan bo'lsa,
+> `migrate` ikkita "leaf node" xatosini berishi yoki jadvalni qayta yaratishga urinishi mumkin.
 
-Serverda `makemigrations` ishga tushirishdan oldin:
+Serverda birinchi marta `migrate` qilishdan oldin:
 
-1. `python manage.py showmigrations IDGPS` bilan qaysi migratsiyalar qo'llanganini ko'ring.
-2. Serverdagi `IDGPS/migrations/` papkasini repodagi bilan solishtiring.
-3. Serverda repoda yo'q migratsiya fayllari bo'lsa, ularni repoga qaytaring.
-   Shundan keyingina `makemigrations` bilan farqni yoping.
+1. Bazaning zaxira nusxasini oling (pastda).
+2. `python manage.py showmigrations IDGPS` bilan qo'llangan migratsiyalarni ko'ring.
+3. Natija qanday bo'lishiga qarab:
+   - **Faqat `[X] 0001_initial` bo'lsa** — `python manage.py migrate` yetarli.
+   - **Eski `0002_alter_sklad…`/`0003_bugalteriya` ko'rinsa** — serverdagi fayllarni
+     o'chirmang. Jadvallar allaqachon mavjud bo'lgani uchun avval
+     `python manage.py migrate IDGPS 0002 --fake` qilish kerak bo'lishi mumkin.
+     Buni faqat sxemani `python manage.py sqlmigrate IDGPS 0002` bilan solishtirgandan
+     keyin bajaring.
 
-Bu yo'lni tanlamasangiz, yangi muhitda `migrate` qilgandan keyin bugalteriyada
-"Null" holatini saqlash `IntegrityError` beradi.
+> [!NOTE]
+> `Bugalteriya.yil` validatori `datetime.now().year` ni import vaqtida hisoblaydi. Shu
+> sababli har yangi yilda `makemigrations` yangi `AlterField` migratsiyasini yaratadi.
+> Bu zararsiz, lekin shovqin tug'diradi. Kelajakda validatorni callable'ga o'tkazish tavsiya etiladi.
 
 ## Zaxira nusxa (backup)
 

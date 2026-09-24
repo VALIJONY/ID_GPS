@@ -2,6 +2,12 @@
 
 Format [Keep a Changelog](https://keepachangelog.com/) asosida.
 
+## [Unreleased]
+
+### Qo'shildi
+- `uv` loyiha sozlamalari: `pyproject.toml`, `uv.lock`, `.python-version` (Python 3.14).
+- `0002_alter_bugalteriya_abonent_tolov_and_more` migratsiyasi — modellar bilan migratsiyalar orasidagi farq yopildi.
+
 ## [2.0.0] — 2026-09-24
 
 Interfeys to'liq qayta ishlandi, bir qator xatolar va xavfsizlik muammolari tuzatildi.

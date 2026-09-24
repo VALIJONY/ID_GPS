@@ -4,7 +4,7 @@ GPS-kuzatuv qurilmalarini sotadigan va o'rnatadigan kompaniya uchun ichki boshqa
 Tizim GPS qurilmalar skladini, mijozlarga sotuvlarni, oylik abonent va SIM karta to'lovlarini,
 rasxodlarni va statistikani bitta joyda yuritadi.
 
-![Stack](https://img.shields.io/badge/Django-5.x-0C4B33) ![UI](https://img.shields.io/badge/UI-vanilla%20CSS%20%2B%20JS-3B5BDB) ![Tests](https://img.shields.io/badge/tests-22%20passing-15803D)
+![Stack](https://img.shields.io/badge/Django-6.x-0C4B33) ![UI](https://img.shields.io/badge/UI-vanilla%20CSS%20%2B%20JS-3B5BDB) ![Tests](https://img.shields.io/badge/tests-22%20passing-15803D)
 
 ## Imkoniyatlar
 
@@ -24,7 +24,7 @@ Interfeys o'zbek tilida, yorug' va qorong'i rejimni qo'llab-quvvatlaydi va telef
 
 ## Texnologiyalar
 
-- **Backend:** Python 3.10+, Django 5, SQLite
+- **Backend:** Python 3.14 (lokal, `.python-version`), Django 6, SQLite
 - **Frontend:** build bosqichisiz — o'z dizayn tizimimiz (`static/css/app.css`) va kutubxonasiz JS (`static/js/app.js`)
 - **Grafiklar:** Chart.js 4 (jsDelivr CDN), shrift: Inter (Google Fonts)
 - **Excel:** `pandas` + `openpyxl`
@@ -34,6 +34,11 @@ Interfeys o'zbek tilida, yorug' va qorong'i rejimni qo'llab-quvvatlaydi va telef
 
 ```bash
 git clone <repo-url> ID_GPS && cd ID_GPS
+
+# uv bilan (tavsiya etiladi — versiyalar uv.lock da qotirilgan)
+uv sync && source .venv/bin/activate
+
+# yoki pip bilan
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 ```
