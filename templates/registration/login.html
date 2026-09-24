@@ -1,74 +1,80 @@
-<!DOCTYPE html>
-<html lang="en">
+{% load static %}<!DOCTYPE html>
+<html lang="uz">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Page</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kirish · ID GPS</title>
+  <script>
+    (function () { try { var t = localStorage.getItem('idgps-theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();
+  </script>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233b5bdb' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z'/%3E%3Ccircle cx='12' cy='10' r='3'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}?v=2">
 </head>
-<body class="bg-gray-100">
-
-    <!-- Centered Login Form -->
-    <div class="min-h-screen flex justify-center items-center">
-        <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-sm">
-            <h2 class="text-2xl font-semibold text-center text-gray-700 mb-6">Login</h2>
-            
-            <!-- Form -->
-            <form action="#" method="POST">
-                {% csrf_token %}
-                <!-- Username Input -->
-                <div class="mb-4">
-                    <label for="username" class="block text-sm font-medium text-gray-600">Username</label>
-                    <input type="text" id="username" name="username" placeholder="Enter your username" 
-                        class="mt-2 p-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-
-                <!-- Password Input -->
-                <div class="mb-6">
-                    <label for="password" class="block text-sm font-medium text-gray-600">Password</label>
-                    <input type="password" id="password" name="password" placeholder="Enter your password" 
-                        class="mt-2 p-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-
-                <!-- Submit Button -->
-                <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                    Login
-                </button>
-            </form>
-
-            <!-- Forgot Password Link -->
-            <div class="mt-4 text-center">
-                <a href="#" class="text-sm text-blue-500 hover:text-blue-700">Forgot your password?</a>
-            </div>
-
-            <!-- Register Link -->
-            <div class="mt-4 text-center">
-                <p class="text-sm text-gray-600">Don't have an account? 
-                    <a href="#" class="text-blue-500 hover:text-blue-700">Sign up</a>
-                </p>
-            </div>
-        </div>
+<body>
+{% include 'partials/icons.html' %}
+<div class="auth">
+  <section class="auth__hero" aria-hidden="true">
+    <div class="auth__brand">
+      <span class="brand-mark"><svg class="icon"><use href="#i-pin"></use></svg></span> ID GPS
     </div>
-    {% if message %}
-    <div class="fixed top-5 right-5 w-80 p-4 bg-yellow-500 text-white rounded-lg shadow-lg">
-        <div class="flex items-center">
-            <svg class="w-6 h-6 mr-2" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" aria-hidden="true">
-                <path d="M10 2a8 8 0 11-8 8 8 8 0 018-8zm0 14a6 6 0 100-12 6 6 0 000 12z"></path>
-            </svg>
-            <span>{{message}}</span>
-        </div>
+    <div class="auth__pitch">
+      <h1>GPS biznesingiz — bitta panelda.</h1>
+      <p>Sklad, sotuvlar, mijozlar, abonent to'lovlari va moliyaviy hisobotlarni tez va aniq boshqaring.</p>
     </div>
-    {%endif%}
+    <div class="auth__features">
+      <div class="auth__feature"><span class="kpi__icon"><svg class="icon"><use href="#i-box"></use></svg></span>GPS qurilmalar ombori nazorati</div>
+      <div class="auth__feature"><span class="kpi__icon"><svg class="icon"><use href="#i-ledger"></use></svg></span>Oylik abonent va SIM to'lovlari</div>
+      <div class="auth__feature"><span class="kpi__icon"><svg class="icon"><use href="#i-trend"></use></svg></span>Real vaqtdagi statistika</div>
+    </div>
+  </section>
 
+  <section class="auth__panel">
+    <form method="post" class="auth__form" novalidate>
+      {% csrf_token %}
+      <div class="auth__mobile-brand">
+        <span class="brand-mark"><svg class="icon"><use href="#i-pin"></use></svg></span> ID GPS
+      </div>
+      <h2>Xush kelibsiz</h2>
+      <p class="page-subtitle">Davom etish uchun hisobingizga kiring</p>
 
-    <script>
-        setTimeout(function() {
-            const alerts = document.querySelectorAll('.fixed');
-            alerts.forEach(function(alert) {
-                alert.style.display = 'none';
-            });
-        }, 3000); // 3 soniya davomida ko'rsatiladi
-    </script>
-    
+      {% if form.errors or message %}
+      <div class="alert alert--danger" role="alert">
+        <svg class="icon icon-sm" style="margin-top:2px"><use href="#i-alert"></use></svg>
+        <span>Login yoki parol noto'g'ri. Qaytadan urinib ko'ring.</span>
+      </div>
+      {% endif %}
+
+      <div class="field mb-4">
+        <label class="label" for="username">Login</label>
+        <div class="input-group">
+          <svg class="icon icon-sm"><use href="#i-user"></use></svg>
+          <input class="input {% if form.errors %}is-invalid{% endif %}" type="text" id="username" name="username"
+                 value="{{ form.username.value|default:'' }}" autocomplete="username" autocapitalize="none" autofocus required
+                 placeholder="Loginingizni kiriting" style="height:46px">
+        </div>
+      </div>
+
+      <div class="field mb-6">
+        <label class="label" for="password">Parol</label>
+        <div class="input-group">
+          <svg class="icon icon-sm"><use href="#i-lock"></use></svg>
+          <input class="input {% if form.errors %}is-invalid{% endif %}" type="password" id="password" name="password"
+                 autocomplete="current-password" required placeholder="••••••••" style="height:46px;padding-right:44px">
+          <button type="button" class="btn-icon input-action" data-reveal="#password" aria-label="Parolni ko'rsatish"><svg class="icon icon-sm"><use href="#i-eye"></use></svg></button>
+        </div>
+      </div>
+
+      {% if request.GET.next %}<input type="hidden" name="next" value="{{ request.GET.next }}">{% endif %}
+      <button type="submit" class="btn btn--primary btn--lg btn--block">
+        Kirish <svg class="icon icon-sm"><use href="#i-arrow-right"></use></svg>
+      </button>
+      <p class="text-muted mt-6" style="text-align:center;font-size:12.5px">Hisobingiz yo'qmi? Administrator bilan bog'laning.</p>
+    </form>
+  </section>
+</div>
+<script src="{% static 'js/app.js' %}?v=2"></script>
 </body>
 </html>

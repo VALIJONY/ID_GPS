@@ -1,156 +1,127 @@
-<!DOCTYPE html>
-<html lang="en">
+{% load static ui %}<!DOCTYPE html>
+<html lang="uz">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.0.0/dist/tailwind.min.css" rel="stylesheet">
-
-    
-    <title>ID GPS</title>
-    <style>
-        body {
-            display: flex;
-            gap: 10px; /* Sidebardan bo'shliqni 10px qilish */
-            height: 100vh;
-            margin: 0;
-        }
-
-        .sidebar {
-            width: 280px;
-            height: 100vh;
-            padding: 1rem;
-            background-color: #010101;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            position: fixed; /* Sidebarni ekranda doimiy qilish */
-        }
-
-        .main-content {
-            flex-grow: 1;
-            padding: 20px;
-            margin-left: 280px; /* Sidebarga moslashish */
-            overflow-y: auto; /* Scrollni qo'shish */
-            height: 100vh;
-        }
-
-        .fixed {
-            position: fixed;
-            top: 5%;
-            right: 5%;
-            width: 80px;
-            padding: 1rem;
-            background-color: #28a745;
-            color: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            opacity: 1;
-            transition: opacity 0.5s ease-in-out;
-        }
-
-        /* Mobile devices */
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
-            }
-
-            .main-content {
-                margin-left: 0;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b1222">
+  <title>{% block title %}Boshqaruv paneli{% endblock %} · ID GPS</title>
+  <script>
+    (function () {
+      try { var t = localStorage.getItem('idgps-theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+    })();
+  </script>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233b5bdb' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z'/%3E%3Ccircle cx='12' cy='10' r='3'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}?v=2">
+  {% block head %}{% endblock %}
 </head>
 <body>
+{% include 'partials/icons.html' %}
 
-
-  <!-- Sidebar -->
-  <div class="sidebar">
-    <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
-      <svg class="bi me-2" width="40" height="32"><use xlink:href=""></use></svg>
-      <span class="fs-4">ID GPS</span>
+<div class="app">
+  <aside class="sidebar" aria-label="Asosiy menyu">
+    <a href="{% url 'home' %}" class="sidebar__brand">
+      <span class="brand-mark"><svg class="icon"><use href="#i-pin"></use></svg></span>
+      <span>ID GPS<span class="brand-sub">Boshqaruv tizimi</span></span>
     </a>
-    <hr>
-    <ul class="nav nav-pills flex-column mb-auto">
-      <li class="nav-item">
-        <a href="{% url 'statistika' %}" class="nav-link {% if 'statistika' in request.path %}active{% else %}text-white{% endif %}">
-          STATISTIKA
-        </a>
-      </li>
-      <li>
-        <a href="{% url 'mijozlar' %}" class="nav-link {% if 'mijozlar' in request.path %}active{% else %}text-white{% endif %}">
-          MIJOZLAR
-        </a>
-      </li>
-      <li>
-        <a href="{% url 'sklad-list' %}" class="nav-link {% if 'sklad' in request.path %}active{% else %}text-white{% endif %}">
-          SKLAD
-        </a>
-      </li>
-      <li>
-        <a href="{% url 'note-list' %}" class="nav-link {% if 'note' in request.path %}active{%else%} text-white {%endif%}">
-          ESLATMALAR
-        </a>
-      </li>
-      <li>
-        <a href="{% url 'rasxod_list' %}" class="nav-link {% if 'rasxod' in request.path %}active{% else %}text-white{% endif %}">
-          RASXOD
-        </a>
-      </li>
-      <li>
-        <a href="{% url 'sotish_list' %}" class="nav-link {% if 'sotuv' in request.path %}active{% else %}text-white{% endif %}">
-          SOTUV
-        </a>
-      </li>
-      <li>
-        <a href="{% url 'bugalteriya' %}" class="nav-link {% if 'bugalteriya' in request.path %}active{% else %}text-white{% endif %}">
-          BUGALTERIYA
-        </a>
-      </li>
-      {% if request.user.is_staff %}
-      <li>
-        <a href="{% url 'hodim-list' %}" class="nav-link {% if 'hodim' in request.path %}active{% else %}text-white{% endif %}">
-          HODIM
-        </a>
-      </li>
-      {% endif %}
-    </ul>
-    <hr>
-    <div class="dropdown">
-      <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
-        <img src="https://github.com/mdo.png" alt="" width="32" height="32" class="rounded-circle me-2">
-        <strong>{{request.user.username}}</strong>
-      </a>
-      <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
-        <li><a class="dropdown-item" href="#">Profile</a></li>
-        <li><hr class="dropdown-divider"></li>
-        <li><a class="dropdown-item" href="{% url 'logout' %}">Sign out</a></li>
-      </ul>
-    </div>
-  </div>
 
-  <!-- Main Content -->
-  <div class="main-content">
-    <main style="text-align: center;">
-      {% block content %}
-      {% endblock %}
+    <nav class="sidebar__nav">
+      <div class="nav-section">Umumiy</div>
+      <a href="{% url 'home' %}" class="nav-link {% nav_active '/home' %}"><svg class="icon"><use href="#i-home"></use></svg>Bosh sahifa</a>
+      <a href="{% url 'statistika' %}" class="nav-link {% nav_active '/statistika' %}"><svg class="icon"><use href="#i-chart"></use></svg>Statistika</a>
+
+      <div class="nav-section">Savdo</div>
+      <a href="{% url 'sotish_list' %}" class="nav-link {% nav_active '/sotuv' %}"><svg class="icon"><use href="#i-cart"></use></svg>Sotuvlar</a>
+      <a href="{% url 'mijozlar' %}" class="nav-link {% nav_active '/mijozlar' %}"><svg class="icon"><use href="#i-users"></use></svg>Mijozlar</a>
+      <a href="{% url 'bugalteriya' %}" class="nav-link {% nav_active '/bugalteriya' %}"><svg class="icon"><use href="#i-ledger"></use></svg>Bugalteriya</a>
+
+      <div class="nav-section">Ombor va moliya</div>
+      <a href="{% url 'sklad-list' %}" class="nav-link {% nav_active '/sklad' %}"><svg class="icon"><use href="#i-box"></use></svg>Sklad</a>
+      <a href="{% url 'rasxod_list' %}" class="nav-link {% nav_active '/rasxod' %}"><svg class="icon"><use href="#i-wallet"></use></svg>Rasxodlar</a>
+
+      <div class="nav-section">Jamoa</div>
+      <a href="{% url 'note-list' %}" class="nav-link {% nav_active '/note' %}"><svg class="icon"><use href="#i-note"></use></svg>Eslatmalar</a>
+      {% if request.user.is_staff %}
+      <a href="{% url 'hodim-list' %}" class="nav-link {% nav_active '/hodimlar' %}"><svg class="icon"><use href="#i-shield"></use></svg>Hodimlar</a>
+      {% endif %}
+    </nav>
+
+    <div class="sidebar__footer">
+      <div class="user-card">
+        <span class="avatar">{{ request.user|initials }}</span>
+        <div style="min-width:0">
+          <div class="user-card__name">{{ request.user|display_name }}</div>
+          <div class="user-card__role">{% if request.user.is_superuser %}Administrator{% else %}{{ request.user.position|default:"Xodim" }}{% endif %}</div>
+        </div>
+        <a href="{% url 'logout' %}" class="btn-icon" title="Chiqish" aria-label="Chiqish"><svg class="icon"><use href="#i-logout"></use></svg></a>
+      </div>
+    </div>
+  </aside>
+  <div class="backdrop"></div>
+
+  <div class="main">
+    <header class="topbar">
+      <button type="button" class="btn-icon menu-toggle" data-nav-toggle aria-label="Menyuni ochish"><svg class="icon"><use href="#i-menu"></use></svg></button>
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        {% block breadcrumb %}<span class="current">Bosh sahifa</span>{% endblock %}
+      </nav>
+      <div class="topbar__actions">
+        <span class="topbar__date num">{% now "d.m.Y" %}</span>
+        <button type="button" class="btn-icon" data-theme-toggle aria-label="Tema"><svg class="icon"><use href="#i-moon"></use></svg></button>
+        <div class="dropdown">
+          <button type="button" class="btn-icon" data-dropdown aria-haspopup="true" aria-expanded="false" aria-label="Profil menyusi">
+            <span class="avatar avatar--sm">{{ request.user|initials }}</span>
+          </button>
+          <div class="dropdown__menu" hidden>
+            <div style="padding:8px 10px 10px">
+              <div class="fw-600">{{ request.user|display_name }}</div>
+              <div class="text-muted" style="font-size:12.5px">@{{ request.user.username }}</div>
+            </div>
+            <div class="dropdown__sep"></div>
+            {% if request.user.is_superuser %}
+            <a class="dropdown__item" href="{% url 'admin:index' %}"><svg class="icon icon-sm"><use href="#i-shield"></use></svg>Admin panel</a>
+            {% endif %}
+            <a class="dropdown__item dropdown__item--danger" href="{% url 'logout' %}"><svg class="icon icon-sm"><use href="#i-logout"></use></svg>Chiqish</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="content">
+      {% block content %}{% endblock %}
     </main>
   </div>
+</div>
 
-  <script>
-    setTimeout(function() {
-        const alerts = document.querySelectorAll('.fixed');
-        alerts.forEach(function(alert) {
-            alert.style.display = 'none';
-        });
-    }, 3000);
+{% if messages %}
+<div class="toasts" aria-live="polite">
+  {% for message in messages %}
+  {% with level=message.tags|default:"info" %}
+  <div class="toast toast--{% if 'error' in level %}error{% elif 'warning' in level %}warning{% elif 'success' in level %}success{% else %}info{% endif %}" role="{% if 'error' in level %}alert{% else %}status{% endif %}">
+    <span class="toast__icon"><svg class="icon icon-sm"><use href="#i-{% if 'error' in level or 'warning' in level %}alert{% elif 'success' in level %}check-circle{% else %}info{% endif %}"></use></svg></span>
+    <div class="toast__body">{{ message }}</div>
+    <button type="button" class="btn-icon" data-dismiss aria-label="Yopish"><svg class="icon icon-sm"><use href="#i-x"></use></svg></button>
+  </div>
+  {% endwith %}
+  {% endfor %}
+</div>
+{% endif %}
 
-    let token = "{{ token }}";
-    sessionStorage.setItem("access_token", token);
-  </script>
+<div class="modal" id="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title" hidden>
+  <div class="modal__dialog">
+    <div class="modal__icon"><svg class="icon icon-lg"><use href="#i-trash"></use></svg></div>
+    <h3 class="modal__title" id="confirm-title">O'chirishni tasdiqlang</h3>
+    <p class="modal__text" id="confirm-text">Bu amalni qaytarib bo'lmaydi.</p>
+    <div class="modal__actions">
+      <button type="button" class="btn btn--secondary" id="confirm-cancel">Bekor qilish</button>
+      <button type="button" class="btn btn--danger" id="confirm-ok">Ha, o'chirish</button>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'js/app.js' %}?v=2"></script>
+{% block scripts %}{% endblock %}
 </body>
 </html>

@@ -1,0 +1,10 @@
+<div class="field{% if full %} span-full{% endif %}">
+  {% if field.widget_type == 'checkbox' %}
+  <label class="checkbox">{{ field }} {{ field.label }}</label>
+  {% else %}
+  <label class="label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="req">*</span>{% endif %}</label>
+  {% if suffix %}<div class="input-group input-group--suffix">{{ field }}<span class="input-suffix">{{ suffix }}</span></div>{% else %}{{ field }}{% endif %}
+  {% endif %}
+  {% if field.help_text %}<div class="hint">{{ field.help_text }}</div>{% endif %}
+  {% for e in field.errors %}<div class="field-error"><svg class="icon icon-sm"><use href="#i-alert"></use></svg>{{ e }}</div>{% endfor %}
+</div>
