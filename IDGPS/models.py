@@ -1,8 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.core.validators import MinValueValidator, MaxValueValidator
-from datetime import datetime
-from django.contrib.auth.hashers import make_password
+from datetime import date, datetime
+from django.contrib.auth.hashers import identify_hasher, make_password
 
 # Pozitsiyalar uchun choices
 POSITION_CHOICES = [
@@ -30,8 +30,12 @@ class CustomUser(AbstractUser):
         return f'{self.firstname} {self.last_name}'
 
     def save(self, *args, **kwargs):
-        if self.password and not self.password.startswith(('pbkdf2_sha256$', 'bcrypt$', 'argon2')):
-            self.password = make_password(self.password)
+        if self.password:
+            try:
+                identify_hasher(self.password)
+            except ValueError:
+                # Ochiq matnli parol — xeshlaymiz
+                self.password = make_password(self.password)
         super().save(*args, **kwargs)
 
 # Sklad Model
@@ -122,4 +126,4 @@ class Bugalteriya(models.Model):
 class Note(models.Model):
     izoh=models.TextField()
     user=models.ForeignKey(CustomUser,on_delete=models.CASCADE)
-    sana=models.DateField(default=datetime.now())
+    sana=models.DateField(default=date.today)

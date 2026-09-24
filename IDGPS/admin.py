@@ -3,7 +3,7 @@ from .models import *
 
 @admin.register(CustomUser)
 class CustomUserAdmin(admin.ModelAdmin):
-    list_display = ['username', 'first_name', 'last_name','position']  # ko'rsatmoqchi bo'lgan maydonlar
+    list_display = ['username', 'firstname', 'last_name', 'position', 'is_staff', 'is_superuser']  # ko'rsatmoqchi bo'lgan maydonlar
     verbose_name = "Xodim"
     verbose_name_plural = "Xodimlar"
 
