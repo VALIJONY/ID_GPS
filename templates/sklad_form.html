@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block title %}{% if object %}GPS tahrirlash{% else %}GPS qabul qilish{% endif %}{% endblock %}
+{% block breadcrumb %}<a href="{% url 'sklad-list' %}">Sklad</a><svg class="icon icon-sm"><use href="#i-chevron-right"></use></svg><span class="current">{% if object %}Tahrirlash{% else %}Yangi qabul{% endif %}</span>{% endblock %}
+
+{% block content %}
+<div class="form-narrow">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">{% if object %}GPS ma'lumotini tahrirlash{% else %}GPS qabul qilish{% endif %}</h1>
+      <p class="page-subtitle">{% if object %}<span class="tag">{{ object.gps_id }}</span>{% else %}Bir partiyadagi bir nechta qurilmani birdaniga qo'shishingiz mumkin{% endif %}</p>
+    </div>
+    <a href="{% url 'sklad-list' %}" class="btn btn--ghost"><svg class="icon icon-sm"><use href="#i-arrow-left"></use></svg>Orqaga</a>
+  </div>
+
+  <form method="post" class="card" novalidate>
+    {% csrf_token %}
+    <div class="card__body">
+      <div class="form-section">
+        <div class="form-section__head">
+          <span class="form-section__num">1</span>
+          <div><div class="form-section__title">Qurilma{% if not object %}lar{% endif %}</div><div class="form-section__desc">IMEI yoki qurilmadagi seriya raqami</div></div>
+        </div>
+
+        {% if object %}
+        <div class="field">
+          <label class="label" for="{{ form.gps_id.id_for_label }}">GPS ID <span class="req">*</span></label>
+          {{ form.gps_id }}
+          {% for e in form.gps_id.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+        </div>
+        {% else %}
+        <div class="repeater" id="gps-list">
+          {% for value in gps_ids %}
+          <div class="repeater-row repeater-row--simple">
+            <span class="repeater-row__index">{{ forloop.counter }}</span>
+            <div class="field">
+              <label class="label sr-only">GPS ID</label>
+              <input type="text" name="gps_id" value="{{ value }}" class="input mono {% if form.gps_id.errors and forloop.first %}is-invalid{% endif %}" placeholder="Masalan: 862095061234567" required autocomplete="off">
+            </div>
+            <button type="button" class="btn-icon btn-icon--danger" data-remove-row title="Olib tashlash" aria-label="Olib tashlash"><svg class="icon icon-sm"><use href="#i-x"></use></svg></button>
+          </div>
+          {% endfor %}
+        </div>
+        {% for e in form.gps_id.errors %}<div class="field-error mt-2">{{ e }}</div>{% endfor %}
+        <button type="button" class="add-row mt-4" id="add-gps"><svg class="icon icon-sm"><use href="#i-plus"></use></svg>Yana GPS qo'shish</button>
+        <p class="hint mt-2">Maslahat: GPS ID kiritib <kbd>Enter</kbd> bosing — yangi qator avtomatik qo'shiladi.</p>
+        {% endif %}
+      </div>
+
+      <div class="form-section">
+        <div class="form-section__head">
+          <span class="form-section__num">2</span>
+          <div><div class="form-section__title">Partiya ma'lumotlari</div><div class="form-section__desc">Yetkazib beruvchi va narx</div></div>
+        </div>
+        <div class="form-grid">
+          {% for field in form %}{% if field.name != 'gps_id' %}
+          <div class="field">
+            <label class="label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="req">*</span>{% endif %}</label>
+            {% if field.name == 'summa_prixod' %}
+            <div class="input-group input-group--suffix">{{ field }}<span class="input-suffix">so'm</span></div>
+            {% else %}{{ field }}{% endif %}
+            {% for e in field.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+          </div>
+          {% endif %}{% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="card__footer form-actions">
+      <a href="{% url 'sklad-list' %}" class="btn btn--secondary">Bekor qilish</a>
+      <button type="submit" class="btn btn--primary"><svg class="icon icon-sm"><use href="#i-save"></use></svg>{% if object %}Saqlash{% else %}<span id="save-label">Skladga qo'shish</span>{% endif %}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if not object %}
+<script>
+(function () {
+  const list = document.getElementById('gps-list');
+  const label = document.getElementById('save-label');
+
+  function renumber() {
+    const rows = list.querySelectorAll('.repeater-row');
+    rows.forEach((row, i) => {
+      row.querySelector('.repeater-row__index').textContent = i + 1;
+      row.querySelector('[data-remove-row]').hidden = rows.length === 1;
+    });
+    label.textContent = rows.length > 1 ? `${rows.length} ta GPS'ni skladga qo'shish` : "Skladga qo'shish";
+  }
+
+  function addRow(focus = true) {
+    const row = list.querySelector('.repeater-row').cloneNode(true);
+    const input = row.querySelector('input');
+    input.value = '';
+    input.classList.remove('is-invalid');
+    list.appendChild(row);
+    renumber();
+    if (focus) input.focus();
+  }
+
+  document.getElementById('add-gps').addEventListener('click', () => addRow());
+  list.addEventListener('click', e => {
+    const btn = e.target.closest('[data-remove-row]');
+    if (btn) { btn.closest('.repeater-row').remove(); renumber(); }
+  });
+  // Enter — skaner bilan ketma-ket kiritish uchun yangi qator
+  list.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.target.name === 'gps_id') {
+      e.preventDefault();
+      if (!e.target.value.trim()) return;
+      const inputs = Array.from(list.querySelectorAll('input[name=gps_id]'));
+      const next = inputs[inputs.indexOf(e.target) + 1];
+      next ? next.focus() : addRow();
+    }
+  });
+  renumber();
+})();
+</script>
+{% endif %}
+{% endblock %}

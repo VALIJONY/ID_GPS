@@ -1,232 +1,109 @@
-{% extends 'base.html'%}
-{% load humanize %}
-{% load static %}
-{%block content%}
-<div class="container mx-auto p-3">
-    <!-- Yuqori panel -->
-    {% if request.path != '/sklad/add/' %}
-    <div class="bg-white rounded-lg shadow-sm p-2">
-        <div class="flex items-center space-x-3 overflow-x-auto whitespace-nowrap">
-            <!-- GPS qo'shish tugmasi -->
-            <a href="{% url 'skladadd' %}" class="inline-flex items-center bg-blue-500 text-white text-sm py-1.5 px-3 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 shrink-0">
-                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-                GPS qo'shish
-            </a>
+{% extends 'base.html' %}
+{% load ui %}
+{% block title %}Sklad{% endblock %}
+{% block breadcrumb %}<a href="{% url 'home' %}">Bosh sahifa</a><svg class="icon icon-sm"><use href="#i-chevron-right"></use></svg><span class="current">Sklad</span>{% endblock %}
 
-            <!-- Qidiruv -->
-            <div class="flex-grow min-w-[180px]">
-                <input type="text" 
-                    id="search-input" 
-                    class="w-full text-sm py-1.5 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="GPS ID, sana yoki olingan odam bo'yicha qidiring..." 
-                    oninput="filterTable()">
-            </div>
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Sklad</h1>
+    <p class="page-subtitle">GPS qurilmalar ombori: qabul qilish, qoldiq va holat</p>
+  </div>
+  <div class="page-actions">
+    <a href="?{% if status %}status={{ status }}&{% endif %}export=1" class="btn btn--secondary"><svg class="icon icon-sm"><use href="#i-download"></use></svg>Eksport</a>
+    <a href="{% url 'skladadd' %}" class="btn btn--primary"><svg class="icon icon-sm"><use href="#i-plus"></use></svg>GPS qo'shish</a>
+  </div>
+</div>
 
-            <!-- Filtrlash -->
-            <form method="GET" action="{% url 'filter-sklad' %}" class="flex items-center space-x-2 shrink-0">
-                <select name="status" class="text-sm py-1.5 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    <option value="">Barcha</option>
-                    <option value="sold" {% if request.GET.status == "sold" %}selected{% endif %}>Sotilgan</option>
-                    <option value="unsold" {% if request.GET.status == "unsold" %}selected{% endif %}>Sotilmagan</option>
-                </select>
-                <button type="submit" class="bg-blue-500 text-white text-sm py-1.5 px-3 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    Filtrlash
-                </button>
-            </form>
+<section class="kpis">
+  <div class="kpi">
+    <div class="kpi__head"><span class="kpi__label">Jami qurilmalar</span><span class="kpi__icon"><svg class="icon"><use href="#i-box"></use></svg></span></div>
+    <div class="kpi__value">{{ counts.all }}</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi__head"><span class="kpi__label">Skladda mavjud</span><span class="kpi__icon kpi__icon--info"><svg class="icon"><use href="#i-satellite"></use></svg></span></div>
+    <div class="kpi__value">{{ counts.unsold }}</div>
+    {% if request.user.is_superuser %}<div class="kpi__meta">Qiymati: <strong>{{ stock_value|som }} so'm</strong></div>{% endif %}
+  </div>
+  <div class="kpi">
+    <div class="kpi__head"><span class="kpi__label">Sotilgan</span><span class="kpi__icon kpi__icon--success"><svg class="icon"><use href="#i-check-circle"></use></svg></span></div>
+    <div class="kpi__value">{{ counts.sold }}</div>
+    <div class="kpi__meta"><strong>{{ counts.sold|percent:counts.all }}%</strong> qurilma sotilgan</div>
+  </div>
+</section>
 
-            <!-- Excel import (faqat admin uchun) -->
-            <form method="POST" action="{% url 'gps-add-excel' %}" enctype="multipart/form-data" class="flex items-center space-x-2 shrink-0">
-                {% csrf_token %}
-                <div class="relative">
-                    <input type="file" name="excel_file" accept=".xlsx, .xls" class="hidden" id="excel_file">
-                    <label for="excel_file" class="cursor-pointer inline-flex items-center px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <svg class="w-4 h-4 mr-1.5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                        </svg>
-                        <span id="file_name" class="text-gray-700">Excel fayl</span>
-                    </label>
-                </div>
-                <button type="submit" class="bg-green-500 text-white text-sm py-1.5 px-3 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500">
-                    Import
-                </button>
-                <a href="{% url 'gps-add-excel' %}?download_template=1" class="text-blue-500 hover:text-blue-700 text-sm">
-                    Shablon
-                </a>
-            </form>
-        </div>
+<section class="card">
+  <div class="toolbar">
+    <div class="search">
+      <svg class="icon icon-sm"><use href="#i-search"></use></svg>
+      <input type="search" class="input" placeholder="GPS ID, yetkazib beruvchi yoki sana…  ( / )" data-table-search="#sklad-table" aria-label="Qidirish">
     </div>
-    {% endif %}
-
-    <!-- Orqaga qaytish -->
-    {% if request.path == '/sklad/add/' %}
-    <div class="mb-6">
-        <a href="{% url 'sklad-list' %}">
-            <button class="bg-blue-500 text-white text-sm py-1.5 px-3 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                ← Orqaga qaytish
-            </button>
-        </a>
+    <div class="segmented" role="tablist" aria-label="Holat bo'yicha filtr">
+      <a href="{% url 'sklad-list' %}" class="{% if not status %}is-active{% endif %}">Barchasi <span class="count">{{ counts.all }}</span></a>
+      <a href="?status=unsold" class="{% if status == 'unsold' %}is-active{% endif %}">Skladda <span class="count">{{ counts.unsold }}</span></a>
+      <a href="?status=sold" class="{% if status == 'sold' %}is-active{% endif %}">Sotilgan <span class="count">{{ counts.sold }}</span></a>
     </div>
-    {% endif %}
-
-    <!-- Asosiy kontent -->
-    {% if request.path != '/sklad/add/' %}
-    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-        <table class="min-w-full table-auto border-collapse border border-gray-300">
-            <thead>
-                <tr class="bg-blue-500 text-white">
-                    <th class="px-3 py-1.5 border">GPS ID</th>
-                    <th class="px-3 py-1.5 border">Olingan odam</th>
-                    <th class="px-3 py-1.5 border">Telefon raqam</th>
-                    {% if request.user.is_superuser %}
-                    <th class="px-3 py-1.5 border">Summa</th>
-                    {%endif%}
-                    <th class="px-3 py-1.5 border">Olingan sana</th>
-                    <th class="px-3 py-1.5 border">Holat</th>
-                    {% if request.user.is_superuser %}
-                    <th class="px-3 py-1.5 border">Tahrirlash</th>
-                    <th class="px-3 py-1.5 border">O'chirish</th>
-                    {% endif %}
-                </tr>
-            </thead>
-            <tbody id="sklad-table-body">
-                {% for item in skladlist %}
-                <tr class="hover:bg-gray-100">
-                    <td class="px-3 py-1.5 border">{{ item.gps_id }}</td>
-                    <td class="px-3 py-1.5 border">{{ item.olingan_odam }}</td>
-                    <td class="px-3 py-1.5 border">{{ item.tel_raqam }}</td>
-                    {% if request.user.is_superuser %}
-                    <td class="px-3 py-1.5 border">{{ item.summa_prixod | intcomma }}</td>
-                    {%endif%}
-                    <td class="px-3 py-1.5 border">{{ item.olingan_sana|date:"d.m.Y" }}</td>
-                    <td class="px-3 py-1.5 border">
-                        {% if item.sotildi_sotilmadi %}
-                            <span class="text-green-600 font-semibold">Sotildi</span>
-                        {% else %}
-                            <span class="text-red-600 font-semibold">Sotilmadi</span>
-                        {% endif %}
-                    </td>
-                    <td class="px-3 py-1.5 border"><a href="{% url 'sklad_update' item.id %}"><button class="text-sm">Tahrirlash</button></a></td>
-                    <td class="px-3 py-1.5 border"><a href="{% url 'sklad_delete' item.id %}"><button class="text-sm">O'chirish</button></a></td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {%endif%}
-
-    {% if request.path == '/sklad/add/'%}
-    <div class="container mx-auto mt-10">
-        <form method="POST" class="bg-white p-8 rounded-xl shadow-lg max-w-lg mx-auto">
-            {% csrf_token %}
-            <div id="gps-container">
-                <div class="mb-4 flex items-center gap-2">
-                    <div class="flex-grow">
-                        <label for="gps_id" class="block text-gray-700 font-medium mb-2 text-sm">GPS ID</label>
-                        {{ form.gps_id }}
-                    </div>
-                </div>
-            </div>
-            <button type="button" onclick="addGpsField()" class="mb-4 bg-green-500 text-white text-sm py-1.5 px-3 rounded-md hover:bg-green-600">
-                + GPS qo'shish
-            </button>
-            
-
-
-            <div class="mb-4">
-                <label for="olingan_odam" class="block text-gray-700 font-medium mb-2 text-sm">Olingan odam</label>
-                {{ form.olingan_odam }}
-            </div>
-
-            <div class="mb-4">
-                <label for="phone" class="block text-gray-700 font-medium mb-2 text-sm">Olgan odam telefon raqam</label>
-                {{ form.tel_raqam }}
-            </div>
-
-            <div class="mb-4">
-                <label for="summa_prixod" class="block text-gray-700 font-medium mb-2 text-sm">Summa Prixod bitta gps uchun</label>
-                {{ form.summa_prixod }}
-            </div>
-
-            <div class="mb-4">
-                <label for="olingan_sana" class="block text-gray-700 font-medium mb-2 text-sm">Olingan sana</label>
-                {{ form.olingan_sana }}
-            </div>
-            
-            <button type="submit" class="w-full bg-blue-600 text-white text-sm py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Saqlash</button>
-        </form>
-    </div>
-
-{%endif%}
-{% if message %}
-  <!-- Alert message -->
-  <div id="alert-box" class="fixed top-5 right-5 w-80 p-4 bg-green-500 text-white rounded-lg shadow-lg opacity-100 transition-opacity duration-500 ease-in-out">
-    <div class="d-flex align-items-center">
-        <svg class="w-6 h-6 mr-2" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" aria-hidden="true">
-            <path d="M10 2a8 8 0 11-8 8 8 8 0 018-8zm0 14a6 6 0 100-12 6 6 0 000 12z"></path>
-        </svg>
-        <span>{{message}}</span>
-    </div>
+    <form method="post" action="{% url 'gps-add-excel' %}" enctype="multipart/form-data" class="toolbar__end upload">
+      {% csrf_token %}
+      <label class="btn btn--secondary btn--sm">
+        <svg class="icon icon-sm"><use href="#i-sheet"></use></svg><span class="upload__name">Excel import</span>
+        <input type="file" name="excel_file" accept=".xlsx,.xls">
+      </label>
+      <button type="submit" class="btn btn--success btn--sm" hidden><svg class="icon icon-sm"><use href="#i-upload"></use></svg>Yuklash</button>
+      <a href="{% url 'gps-add-excel' %}?download_template=1" class="btn btn--ghost btn--sm" title="Excel shablonini yuklab olish">Shablon</a>
+    </form>
   </div>
 
-  {%endif%}
-
-    <script>
-
-function setTodayDate() {
-    const today = new Date();
-    const date = today.toISOString().split('T')[0];
-    document.getElementById('olingan_sana').value = date;
-}
-
-window.onload = function() {
-    setTodayDate();  // Olingan sana
-};
-
-function filterTable() {
-    const searchInput = document.getElementById('search-input').value.toLowerCase();
-    const tableRows = document.querySelectorAll('tbody tr');
-    
-    tableRows.forEach(row => {
-        const gpsCell = row.querySelector('td:first-child').textContent.toLowerCase();
-        const personCell = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-        const dateCell = row.querySelector('td:nth-child(5)').textContent.toLowerCase();
-        
-        if (gpsCell.includes(searchInput) || 
-            dateCell.includes(searchInput) || 
-            personCell.includes(searchInput)) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    });
-}
-
-//  GPS qo'shish
-    let gpsCount = 1;
-    function addGpsField() {
-        gpsCount++;
-        const container = document.getElementById('gps-container');
-        const newField = document.createElement('div');
-        newField.className = 'mb-4 flex items-center gap-2';
-        newField.innerHTML = `
-            <div class="flex-grow">
-                <label for="gps_id_${gpsCount}" class="block text-gray-700 font-medium mb-2">GPS ID ${gpsCount}</label>
-                <input type="text" name="gps_id_${gpsCount}" id="gps_id_${gpsCount}" class="w-full p-2 border border-gray-300 rounded-lg">
+  {% if skladlist %}
+  <div class="table-wrap">
+    <table class="table table--stack" id="sklad-table">
+      <thead>
+        <tr>
+          <th data-sort="text">GPS ID</th>
+          <th data-sort="text">Yetkazib beruvchi</th>
+          <th>Telefon</th>
+          {% if request.user.is_superuser %}<th data-sort="num" class="ta-r">Kirim narxi</th>{% endif %}
+          <th data-sort="text">Olingan sana</th>
+          <th>Holat</th>
+          {% if request.user.is_superuser %}<th class="ta-r"><span class="sr-only">Amallar</span></th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in skladlist %}
+        <tr>
+          <td class="cell-primary"><span class="tag">{{ item.gps_id }}</span></td>
+          <td data-label="Yetkazib beruvchi">{{ item.olingan_odam|default:"—" }}</td>
+          <td data-label="Telefon" class="nowrap">{% if item.tel_raqam %}<a href="tel:{{ item.tel_raqam }}" class="text-2">{{ item.tel_raqam }}</a>{% else %}—{% endif %}</td>
+          {% if request.user.is_superuser %}<td data-label="Kirim narxi" class="ta-r money" data-value="{{ item.summa_prixod }}">{{ item.summa_prixod|som }}</td>{% endif %}
+          <td data-label="Sana" class="nowrap num" data-value="{{ item.olingan_sana|date:'Y-m-d' }}">{{ item.olingan_sana|date:"d.m.Y" }}</td>
+          <td data-label="Holat">{% if item.sotildi_sotilmadi %}<span class="badge badge--success">Sotilgan</span>{% else %}<span class="badge badge--info">Skladda</span>{% endif %}</td>
+          {% if request.user.is_superuser %}
+          <td class="ta-r cell-actions">
+            <div class="actions">
+              <a href="{% url 'sklad_update' item.id %}" class="btn-icon btn-icon--primary" title="Tahrirlash" aria-label="Tahrirlash"><svg class="icon icon-sm"><use href="#i-edit"></use></svg></a>
+              {% if not item.sotildi_sotilmadi %}
+              <form method="post" action="{% url 'sklad_delete' item.id %}" data-confirm="«{{ item.gps_id }}» skladdan butunlay o'chiriladi.">
+                {% csrf_token %}
+                <button type="submit" class="btn-icon btn-icon--danger" title="O'chirish" aria-label="O'chirish"><svg class="icon icon-sm"><use href="#i-trash"></use></svg></button>
+              </form>
+              {% else %}
+              <span class="btn-icon" style="visibility:hidden" aria-hidden="true"></span>
+              {% endif %}
             </div>
-            <button type="button" onclick="removeGpsField(this)" class="h-10 mt-8 px-3 bg-red-500 text-white rounded-lg hover:bg-red-600">
-                -
-            </button>
-        `;
-        container.appendChild(newField);
-    }
-
-    function removeGpsField(button) {
-        button.parentElement.remove();
-    }
-
-    </script>
-
-</div>
-{%endblock%}
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty">
+    <div class="empty__icon"><svg class="icon icon-lg"><use href="#i-box"></use></svg></div>
+    <div class="empty__title">{% if status %}Bu filtr bo'yicha GPS topilmadi{% else %}Skladda hali GPS yo'q{% endif %}</div>
+    <p class="empty__text">Qurilmalarni qo'lda qo'shing yoki Excel shablon orqali ommaviy import qiling.</p>
+    <a href="{% url 'skladadd' %}" class="btn btn--primary"><svg class="icon icon-sm"><use href="#i-plus"></use></svg>GPS qo'shish</a>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

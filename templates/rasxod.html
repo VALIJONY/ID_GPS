@@ -1,92 +1,84 @@
-{% extends 'base.html'%}
-{%block content%}
-<html lang="en">
+{% extends 'base.html' %}
+{% load ui %}
+{% block title %}Rasxodlar{% endblock %}
+{% block breadcrumb %}<a href="{% url 'home' %}">Bosh sahifa</a><svg class="icon icon-sm"><use href="#i-chevron-right"></use></svg><span class="current">Rasxodlar</span>{% endblock %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ID GPS</title>
-</head>
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Rasxodlar</h1>
+    <p class="page-subtitle">Kompaniya xarajatlari hisobi</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'rasxod_add' %}" class="btn btn--primary"><svg class="icon icon-sm"><use href="#i-plus"></use></svg>Rasxod qo'shish</a>
+  </div>
+</div>
 
-<body>
+<section class="kpis">
+  <div class="kpi">
+    <div class="kpi__head"><span class="kpi__label">Bu oy</span><span class="kpi__icon kpi__icon--warning"><svg class="icon"><use href="#i-calendar"></use></svg></span></div>
+    <div class="kpi__value">{{ month_total|som }}<small>so'm</small></div>
+    <div class="kpi__meta">O'tgan oy: <strong>{{ prev_month_total|som }} so'm</strong></div>
+  </div>
+  <div class="kpi">
+    <div class="kpi__head"><span class="kpi__label">{% if period %}Tanlangan oy jami{% else %}Umumiy jami{% endif %}</span><span class="kpi__icon"><svg class="icon"><use href="#i-wallet"></use></svg></span></div>
+    <div class="kpi__value">{{ total|som }}<small>so'm</small></div>
+    <div class="kpi__meta"><strong>{{ rasxod_list|length }}</strong> ta yozuv</div>
+  </div>
+</section>
 
-    {% if request.path != '/rasxod/add/' %}
-    <a href="{% url 'rasxod_add' %}" class="bg-blue-500 text-white px-4 py-2 rounded-lg mb-4">Qo`shish</a>
-    {%endif%}
-
-    {% if request.path == '/rasxod/add/' %}
-    <a href="{% url 'rasxod_list' %}" class="bg-blue-500 text-white px-4 py-2 rounded-lg mb-4">Orqaga</a>
-    {%endif%}
-
-    {% if request.path != '/rasxod/add/' %}
-    <div class="overflow-x-auto bg-white shadow-md rounded-lg p-4 mb-4">
-        <table class="min-w-full text-sm text-left text-gray-500 p-4">
-            <thead class="bg-gray-100">
-                <tr>
-                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Rasxod Nomi</th>
-                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Sana</th>
-                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Summasi</th>
-                    {% if request.user.is_superuser %}
-                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Tahrirlash</th>
-                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">O`chirish</th>
-                    {%endif%}
-                </tr>
-            </thead>
-            <tbody>
-                {% for rasxod in rasxod_list %}
-                <tr class="border-b hover:bg-gray-50">
-                    <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ rasxod.rasxod_nomi }}</td>
-                    <td class="px-6 py-4 text-sm text-gray-500">{{ rasxod.sana }}</td>
-                    <td class="px-6 py-4 text-sm text-gray-500">{{ rasxod.summa }}</td>
-                    {% if request.user.is_superuser %}
-                    <td class="px-6 py-4 text-sm text-blue-500">
-                        <a href="{% url 'rasxod_update' rasxod.pk %}" class="hover:text-blue-700">Yangilash</a>
-                    </td>
-                    <td>
-                        <a href="{% url 'rasxod_delete' rasxod.pk %}" class="hover:text-red-500">O'chirish</a>
-                    </td>
-                    {% endif %}
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<section class="card">
+  <div class="toolbar">
+    <div class="search">
+      <svg class="icon icon-sm"><use href="#i-search"></use></svg>
+      <input type="search" class="input" placeholder="Rasxod nomi bo'yicha qidirish…  ( / )" data-table-search="#expense-table" aria-label="Qidirish">
     </div>
-    {%endif%}
-
-    {% if request.path == '/rasxod/add/'%}
-    <form method="POST" class="max-w-lg mx-auto p-6 bg-white rounded-lg shadow-md">
-        {% csrf_token %}
-        <div class="mb-4">
-            <label for="rasxod_nomi" class="block text-sm font-semibold text-gray-700">Rasxod Nomi:</label>
-            <input type="text" name="rasxod_nomi" required
-                class="mt-2 p-3 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400">
-        </div>
-
-        <div class="mb-4">
-            <label for="sana" class="block text-sm font-semibold text-gray-700">Sana:</label>
-            <input type="date" name="sana" id="sana" required
-                class="mt-2 p-3 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400">
-        </div>
-        <script>
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('sana').value = today;
-        </script>
-
-        <div class="mb-4">
-            <label for="summasi" class="block text-sm font-semibold text-gray-700">Summasi:</label>
-            <input type="number" name="summasi" required
-                class="mt-2 p-3 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400">
-        </div>
-
-        <button type="submit"
-            class="w-full py-3 mt-4 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Saqlash</button>
+    <form method="get" class="toolbar__end flex items-center gap-2">
+      <label class="sr-only" for="oy">Oy</label>
+      <input type="month" id="oy" name="oy" value="{{ period }}" class="input" style="height:38px;width:auto" onchange="this.form.submit()">
+      {% if period %}<a href="{% url 'rasxod_list' %}" class="btn btn--ghost btn--sm">Tozalash</a>{% endif %}
     </form>
-    {%endif%}
+  </div>
 
-
-
-
-    {%endblock%}
-</body>
-
-</html>
+  {% if rasxod_list %}
+  <div class="table-wrap">
+    <table class="table table--stack" id="expense-table">
+      <thead>
+        <tr>
+          <th data-sort="text">Rasxod nomi</th>
+          <th data-sort="text">Sana</th>
+          <th data-sort="num" class="ta-r">Summa</th>
+          {% if request.user.is_superuser %}<th class="ta-r"><span class="sr-only">Amallar</span></th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rasxod_list %}
+        <tr>
+          <td class="cell-primary" style="max-width:520px"><div class="cell-main" style="font-weight:500;white-space:pre-wrap">{{ r.rasxod_nomi }}</div></td>
+          <td data-label="Sana" class="nowrap num" data-value="{{ r.sana|date:'Y-m-d' }}">{{ r.sana|date:"d.m.Y" }}</td>
+          <td data-label="Summa" class="ta-r money fw-600" data-value="{{ r.summa }}">{{ r.summa|som }} <small>so'm</small></td>
+          {% if request.user.is_superuser %}
+          <td class="ta-r cell-actions">
+            <div class="actions">
+              <a href="{% url 'rasxod_update' r.pk %}" class="btn-icon btn-icon--primary" title="Tahrirlash" aria-label="Tahrirlash"><svg class="icon icon-sm"><use href="#i-edit"></use></svg></a>
+              <form method="post" action="{% url 'rasxod_delete' r.pk %}" data-confirm="«{{ r.rasxod_nomi|truncatechars:40 }}» rasxodi o'chiriladi.">
+                {% csrf_token %}
+                <button type="submit" class="btn-icon btn-icon--danger" title="O'chirish" aria-label="O'chirish"><svg class="icon icon-sm"><use href="#i-trash"></use></svg></button>
+              </form>
+            </div>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty">
+    <div class="empty__icon"><svg class="icon icon-lg"><use href="#i-wallet"></use></svg></div>
+    <div class="empty__title">{% if period %}Bu oyda rasxod yo'q{% else %}Rasxodlar hali yo'q{% endif %}</div>
+    <a href="{% url 'rasxod_add' %}" class="btn btn--primary"><svg class="icon icon-sm"><use href="#i-plus"></use></svg>Rasxod qo'shish</a>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

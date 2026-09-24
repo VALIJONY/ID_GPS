@@ -1,61 +1,102 @@
 {% extends 'base.html' %}
-{% load humanize %}
+{% load ui %}
+{% block title %}Mijozlar{% endblock %}
+{% block breadcrumb %}<a href="{% url 'home' %}">Bosh sahifa</a><svg class="icon icon-sm"><use href="#i-chevron-right"></use></svg><span class="current">Mijozlar</span>{% endblock %}
+
 {% block content %}
-<div class="container mx-auto mt-6">
-    <h1 class="text-2xl font-bold mb-6">Mijozlar ro'yxati</h1>
-    <div class="overflow-x-auto">
-        <table class="min-w-full bg-white border border-gray-300 text-sm">
-            <thead>
-                <tr class="bg-gray-100">
-                    <th class="px-2 py-1 border text-xs">Mijoz</th>
-                    <th class="px-2 py-1 border text-xs">Tel raqam</th>
-                    <th class="px-2 py-1 border text-xs">Username</th>
-                    <th class="px-2 py-1 border text-xs">Password</th>
-                    <th class="px-2 py-1 border text-xs">Dasturiy ta'minot</th>
-                    <th class="px-2 py-1 border text-xs">GPS ID</th>
-                    <th class="px-2 py-1 border text-xs">SIM karta</th>
-                    <th class="px-2 py-1 border text-xs">Mashina turi</th>
-                    <th class="px-2 py-1 border text-xs">Davlat raqami</th>
-                    <th class="px-2 py-1 border text-xs">Abonent to'lov</th>
-                    <th class="px-2 py-1 border text-xs">Sana</th>
-                    <th class="px-2 py-1 border text-xs">Umumiy summa</th>
-                    <th class="px-2 py-1 border text-xs">Naqd</th>
-                    <th class="px-2 py-1 border text-xs">Bank</th>
-                    <th class="px-2 py-1 border text-xs">Qarz</th>
-                    <th class="px-2 py-1 border text-xs">Master</th>
-                    <th class="px-2 py-1 border text-xs">Master summasi</th>
-                    <th class="px-2 py-1 border text-xs">Jami summa</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in mijozlar_data %}
-                    <tr class="hover:bg-gray-50">
-                        {% if item.first_row %}
-                            <td class="px-2 py-1 border text-xs" rowspan="{{ item.rowspan }}">{{ item.mijoz }}</td>
-                            <td class="px-2 py-1 border text-xs" rowspan="{{ item.rowspan }}">{{ item.tel_raqam }}</td>
-                            <td class="px-2 py-1 border text-xs" rowspan="{{ item.rowspan }}">{{ item.username }}</td>
-                            <td class="px-2 py-1 border text-xs" rowspan="{{ item.rowspan }}">{{ item.password }}</td>
-                            <td class="px-2 py-1 border text-xs" rowspan="{{ item.rowspan }}">{{ item.dasturiy_taminot_nomi }}</td>
-                        {% endif %}
-                        <td class="px-2 py-1 border text-xs">{{ item.gps }}</td>
-                        <td class="px-2 py-1 border text-xs">{{ item.sim_karta }}</td>
-                        <td class="px-2 py-1 border text-xs">{{ item.mashina_turi }}</td>
-                        <td class="px-2 py-1 border text-xs">{{ item.davlat_raqami }}</td>
-                        {% if item.first_row %}
-                            <td class="px-2 py-1 border text-xs" rowspan="{{ item.rowspan }}">{{ item.abonent_tulov|intcomma }}</td>
-                            <td class="px-2 py-1 border text-xs" rowspan="{{ item.rowspan }}">{{ item.sana }}</td>
-                            <td class="px-2 py-1 border text-xs" rowspan="{{ item.rowspan }}">{{ item.summasi|intcomma }}</td>
-                            <td class="px-2 py-1 border text-xs" rowspan="{{ item.rowspan }}">{{ item.naqd|intcomma }}</td>
-                            <td class="px-2 py-1 border text-xs" rowspan="{{ item.rowspan }}">{{ item.bank_schot|intcomma }}</td>
-                            <td class="px-2 py-1 border text-xs" rowspan="{{ item.rowspan }}">{{ item.karta|intcomma }}</td>
-                            <td class="px-2 py-1 border text-xs" rowspan="{{ item.rowspan }}">{{ item.master }}</td>
-                            <td class="px-2 py-1 border text-xs" rowspan="{{ item.rowspan }}">{{ item.master_summasi|intcomma }}</td>
-                            <td class="px-2 py-1 border text-xs" rowspan="{{ item.rowspan }}">{{ item.jami_summa|intcomma }}</td>
-                        {% endif %}
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Mijozlar</h1>
+    <p class="page-subtitle">{{ clients|length }} ta mijoz · {{ device_count }} ta qurilma · {{ debtors }} ta qarzdor</p>
+  </div>
+  <div class="page-actions">
+    <a href="?export=1" class="btn btn--secondary"><svg class="icon icon-sm"><use href="#i-download"></use></svg>Excel eksport</a>
+    <a href="{% url 'sotish_add' %}" class="btn btn--primary"><svg class="icon icon-sm"><use href="#i-plus"></use></svg>Yangi sotuv</a>
+  </div>
 </div>
+
+<section class="card">
+  <div class="toolbar">
+    <div class="search">
+      <svg class="icon icon-sm"><use href="#i-search"></use></svg>
+      <input type="search" class="input" placeholder="Mijoz, telefon, GPS ID, SIM yoki davlat raqami…  ( / )" data-table-search="#clients-table" aria-label="Qidirish">
+    </div>
+    <div class="segmented">
+      <button type="button" class="is-active" data-filter-table="#clients-table" data-filter-value="">Barchasi</button>
+      <button type="button" data-filter-table="#clients-table" data-filter-value="debt">Qarzdorlar</button>
+    </div>
+    <div class="toolbar__end result-count"><span data-count-for="#clients-table">{{ clients|length }}</span> ta mijoz</div>
+  </div>
+
+  {% if clients %}
+  <div class="table-wrap">
+    <table class="table table--compact table--grouped" id="clients-table">
+      <thead>
+        <tr>
+          <th>Mijoz</th>
+          <th>Platforma</th>
+          <th>GPS ID</th>
+          <th>SIM karta</th>
+          <th>Mashina</th>
+          <th class="ta-r">Abonent</th>
+          <th class="ta-r">Summa</th>
+          <th class="ta-r">To'langan</th>
+          <th class="ta-r">Qarz</th>
+          <th>Usta</th>
+          <th class="ta-r">Jami</th>
+          <th><span class="sr-only">Amallar</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in clients %}
+        {% with s=c.sale n=c.devices|length %}
+        {% for d in c.devices %}
+        <tr data-group="c{{ s.id }}" data-status="{% if s.karta > 0 %}debt{% else %}paid{% endif %}" {% if forloop.first %}class="group-start"{% endif %}>
+          {% if forloop.first %}
+          <td rowspan="{{ n }}" style="min-width:190px">
+            <div class="cell-main">{{ s.mijoz }}</div>
+            <div class="cell-sub">{% if s.mijoz_tel_raqam %}<a href="tel:{{ s.mijoz_tel_raqam }}" class="text-2">{{ s.mijoz_tel_raqam }}</a>{% endif %}</div>
+            <div class="cell-sub num">{{ s.sana|date:"d.m.Y" }}</div>
+          </td>
+          <td rowspan="{{ n }}" style="min-width:170px">
+            <div class="cell-sub">{{ s.dasturiy_taminot|default:"—" }}</div>
+            <div class="secret"><span class="text-muted" style="font-size:12px">Login:</span> <span class="secret__value">{{ s.username }}</span>
+              <button type="button" class="btn-icon" style="width:24px;height:24px" data-copy="{{ s.username }}" title="Nusxalash" aria-label="Loginni nusxalash"><svg class="icon icon-sm" style="width:13px;height:13px"><use href="#i-copy"></use></svg></button>
+            </div>
+            <div class="secret"><span class="text-muted" style="font-size:12px">Parol:</span> <span class="secret__value" data-value="{{ s.password }}">••••••</span>
+              <button type="button" class="btn-icon" style="width:24px;height:24px" data-reveal title="Ko'rsatish" aria-label="Parolni ko'rsatish"><svg class="icon icon-sm" style="width:13px;height:13px"><use href="#i-eye"></use></svg></button>
+            </div>
+          </td>
+          {% endif %}
+          <td>{% if d.gps %}<span class="tag">{{ d.gps.gps_id }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+          <td class="mono nowrap">{{ d.sim|default:"—" }}</td>
+          <td class="nowrap">{% if d.mashina_turi %}{{ d.mashina_turi }}{% endif %} {% if d.davlat_raqami %}<span class="plate">{{ d.davlat_raqami }}</span>{% endif %}{% if not d.mashina_turi and not d.davlat_raqami %}<span class="text-muted">—</span>{% endif %}</td>
+          {% if forloop.first %}
+          <td rowspan="{{ n }}" class="ta-r money">{{ s.abonent_tulov|som }}</td>
+          <td rowspan="{{ n }}" class="ta-r money">{{ s.summasi|som }}</td>
+          <td rowspan="{{ n }}" class="ta-r">
+            <div class="money">{{ s.naqd|add:s.bank_schot|som }}</div>
+            <div class="cell-sub nowrap">Naqd {{ s.naqd|som }} · Bank {{ s.bank_schot|som }}</div>
+          </td>
+          <td rowspan="{{ n }}" class="ta-r">{% if s.karta > 0 %}<span class="badge badge--danger">{{ s.karta|som }}</span>{% else %}<span class="badge badge--success">Yo'q</span>{% endif %}</td>
+          <td rowspan="{{ n }}"><div class="nowrap">{{ s.master|default:"—" }}</div><div class="cell-sub money">{{ s.master_summasi|som }}</div></td>
+          <td rowspan="{{ n }}" class="ta-r money fw-600">{{ c.jami_summa|som }}</td>
+          <td rowspan="{{ n }}" class="ta-r"><a href="{% url 'sotish_update' s.id %}" class="btn-icon btn-icon--primary" title="Tahrirlash" aria-label="Tahrirlash"><svg class="icon icon-sm"><use href="#i-edit"></use></svg></a></td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+        {% endwith %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty">
+    <div class="empty__icon"><svg class="icon icon-lg"><use href="#i-users"></use></svg></div>
+    <div class="empty__title">Mijozlar hali yo'q</div>
+    <p class="empty__text">Birinchi sotuvni qo'shganingizda mijoz shu yerda paydo bo'ladi.</p>
+    <a href="{% url 'sotish_add' %}" class="btn btn--primary">Yangi sotuv</a>
+  </div>
+  {% endif %}
+</section>
 {% endblock %}

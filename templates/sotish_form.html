@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+{% load ui %}
+{% block title %}{% if sotish %}Sotuvni tahrirlash{% else %}Yangi sotuv{% endif %}{% endblock %}
+{% block breadcrumb %}<a href="{% url 'sotish_list' %}">Sotuvlar</a><svg class="icon icon-sm"><use href="#i-chevron-right"></use></svg><span class="current">{% if sotish %}{{ sotish.mijoz }}{% else %}Yangi sotuv{% endif %}</span>{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{% if sotish %}Sotuvni tahrirlash{% else %}Yangi sotuv{% endif %}</h1>
+    <p class="page-subtitle">Mijoz, qurilmalar va to'lov ma'lumotlarini kiriting</p>
+  </div>
+  <a href="{% url 'sotish_list' %}" class="btn btn--ghost"><svg class="icon icon-sm"><use href="#i-arrow-left"></use></svg>Orqaga</a>
+</div>
+
+<form method="post" novalidate id="sale-form">
+  {% csrf_token %}
+  <div class="grid grid-main-side" style="align-items:start">
+    <div class="card">
+      <div class="card__body">
+        <!-- 1. Mijoz -->
+        <div class="form-section">
+          <div class="form-section__head">
+            <span class="form-section__num">1</span>
+            <div><div class="form-section__title">Mijoz</div><div class="form-section__desc">Asosiy ma'lumotlar</div></div>
+          </div>
+          <div class="form-grid">
+            {% include 'partials/field.html' with field=form.mijoz %}
+            {% include 'partials/field.html' with field=form.mijoz_tel_raqam %}
+            {% include 'partials/field.html' with field=form.sana %}
+            {% include 'partials/field.html' with field=form.dasturiy_taminot %}
+          </div>
+        </div>
+
+        <!-- 2. Platforma -->
+        <div class="form-section">
+          <div class="form-section__head">
+            <span class="form-section__num">2</span>
+            <div><div class="form-section__title">Kuzatuv platformasi</div><div class="form-section__desc">Mijoz tizimga kiradigan login va parol</div></div>
+          </div>
+          <div class="form-grid">
+            {% include 'partials/field.html' with field=form.username %}
+            {% include 'partials/field.html' with field=form.password %}
+          </div>
+        </div>
+
+        <!-- 3. Qurilmalar -->
+        <div class="form-section">
+          <div class="form-section__head">
+            <span class="form-section__num">3</span>
+            <div><div class="form-section__title">GPS qurilmalar</div><div class="form-section__desc">Skladda mavjud: {{ gps_choices|length }} ta</div></div>
+          </div>
+          <div class="repeater" id="devices">
+            {% for row in rows %}
+            <div class="repeater-row">
+              <span class="repeater-row__index">{{ forloop.counter }}</span>
+              <div class="field">
+                <label class="label">GPS ID <span class="req">*</span></label>
+                <select name="gps_id" class="select gps-select" required>
+                  <option value="">Tanlang…</option>
+                  {% for gps in gps_choices %}
+                  <option value="{{ gps.id }}" {% if row.gps_id == gps.id|stringformat:'s' %}selected{% endif %}>{{ gps.gps_id }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="field">
+                <label class="label">SIM karta</label>
+                <input type="text" name="sim_karta" value="{{ row.sim }}" class="input mono" placeholder="90 123 45 67" inputmode="tel">
+              </div>
+              <div class="field">
+                <label class="label">Mashina</label>
+                <input type="text" name="mashina_turi" value="{{ row.mashina_turi }}" class="input" placeholder="Cobalt">
+              </div>
+              <div class="field">
+                <label class="label">Davlat raqami</label>
+                <input type="text" name="davlat_raqami" value="{{ row.davlat_raqami }}" class="input mono" placeholder="01A777AA" style="text-transform:uppercase">
+              </div>
+              <button type="button" class="btn-icon btn-icon--danger" data-remove-row title="Olib tashlash" aria-label="Qatorni olib tashlash"><svg class="icon icon-sm"><use href="#i-trash"></use></svg></button>
+            </div>
+            {% endfor %}
+          </div>
+          <button type="button" class="add-row mt-4" id="add-device"><svg class="icon icon-sm"><use href="#i-plus"></use></svg>Yana qurilma qo'shish</button>
+          <p class="hint mt-2" id="no-stock" {% if gps_choices %}hidden{% endif %}>Skladda bo'sh GPS qolmagan. Avval <a href="{% url 'skladadd' %}">GPS qabul qiling</a>.</p>
+        </div>
+
+        <!-- 4. Usta va abonent -->
+        <div class="form-section">
+          <div class="form-section__head">
+            <span class="form-section__num">4</span>
+            <div><div class="form-section__title">O'rnatish va abonent</div><div class="form-section__desc">Usta ma'lumotlari va oylik to'lov</div></div>
+          </div>
+          <div class="form-grid form-grid--3">
+            {% include 'partials/field.html' with field=form.master %}
+            <div class="field">
+              <label class="label" for="master_summasi">Usta summasi</label>
+              <div class="input-group input-group--suffix">
+                <input type="text" name="master_summasi" id="master_summasi" value="{{ payment.master_summasi }}" class="input" data-money inputmode="numeric" placeholder="0" autocomplete="off">
+                <span class="input-suffix">so'm</span>
+              </div>
+            </div>
+            {% include 'partials/field.html' with field=form.abonent_tulov suffix="so'm" %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- To'lov paneli -->
+    <aside class="card sticky-side">
+      <div class="card__header"><div><h2 class="card__title">To'lov</h2><p class="card__subtitle">Qarz avtomatik hisoblanadi</p></div></div>
+      <div class="card__body">
+        <div class="field mb-4">
+          <label class="label" for="id_summasi">GPS'lar umumiy summasi</label>
+          <div class="input-group input-group--suffix">
+            <input type="text" name="summasi" id="id_summasi" value="{{ payment.summasi }}" class="input" data-money inputmode="numeric" placeholder="0" autocomplete="off" style="height:46px;font-size:16px;font-weight:600">
+            <span class="input-suffix">so'm</span>
+          </div>
+        </div>
+        <div class="form-grid" style="gap:12px">
+          <div class="field">
+            <label class="label" for="naqd">Naqd</label>
+            <input type="text" name="naqd" id="naqd" value="{{ payment.naqd }}" class="input" data-money inputmode="numeric" placeholder="0" autocomplete="off">
+          </div>
+          <div class="field">
+            <label class="label" for="bank_schot">Bank / karta</label>
+            <input type="text" name="bank_schot" id="bank_schot" value="{{ payment.bank_schot }}" class="input" data-money inputmode="numeric" placeholder="0" autocomplete="off">
+          </div>
+        </div>
+        <button type="button" class="btn btn--ghost btn--sm mt-2" id="pay-full"><svg class="icon icon-sm"><use href="#i-check"></use></svg>To'liq naqd to'landi</button>
+
+        <div class="summary mt-4">
+          <div class="progress" aria-hidden="true"><div class="progress__bar" id="pay-progress" style="width:0"></div></div>
+          <div class="summary__row"><span>To'landi</span><strong id="sum-paid">0</strong></div>
+          <div class="summary__row"><span>Qurilmalar</span><strong id="sum-devices">0 ta</strong></div>
+          <div class="summary__row"><span>Oylik abonent</span><strong id="sum-abonent">0</strong></div>
+          <div class="summary__row summary__total" id="debt-row"><span>Qarz qoldig'i</span><strong id="sum-debt">0</strong></div>
+          <div class="field-error" id="overpay" hidden><svg class="icon icon-sm"><use href="#i-alert"></use></svg>To'lov umumiy summadan oshib ketdi</div>
+        </div>
+      </div>
+      <div class="card__footer">
+        <button type="submit" class="btn btn--primary btn--lg btn--block" id="submit-btn"><svg class="icon icon-sm"><use href="#i-save"></use></svg>{% if sotish %}O'zgarishlarni saqlash{% else %}Sotuvni saqlash{% endif %}</button>
+      </div>
+    </aside>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const list = $('devices');
+  const money = IDGPS.parseMoney;
+  const fmt = n => IDGPS.formatMoney(n) + " so'm";
+
+  /* --- Qurilma qatorlari --- */
+  function syncOptions() {
+    const selects = Array.from(list.querySelectorAll('.gps-select'));
+    const chosen = selects.map(s => s.value).filter(Boolean);
+    selects.forEach(sel => {
+      Array.from(sel.options).forEach(opt => {
+        if (opt.value) opt.disabled = opt.value !== sel.value && chosen.includes(opt.value);
+      });
+    });
+    const rows = list.querySelectorAll('.repeater-row');
+    rows.forEach((row, i) => {
+      row.querySelector('.repeater-row__index').textContent = i + 1;
+      row.querySelector('[data-remove-row]').hidden = rows.length === 1;
+    });
+    const total = selects[0] ? selects[0].options.length - 1 : 0;
+    $('add-device').hidden = rows.length >= total;
+    recalc();
+  }
+
+  $('add-device').addEventListener('click', () => {
+    const row = list.querySelector('.repeater-row').cloneNode(true);
+    row.querySelectorAll('input').forEach(i => { i.value = ''; });
+    row.querySelector('select').value = '';
+    list.appendChild(row);
+    syncOptions();
+    row.querySelector('select').focus();
+  });
+  list.addEventListener('click', e => {
+    const btn = e.target.closest('[data-remove-row]');
+    if (btn) { btn.closest('.repeater-row').remove(); syncOptions(); }
+  });
+  list.addEventListener('change', e => { if (e.target.matches('.gps-select')) syncOptions(); });
+
+  /* --- To'lov hisob-kitobi --- */
+  function recalc() {
+    const total = money($('id_summasi').value);
+    const paid = money($('naqd').value) + money($('bank_schot').value);
+    const debt = total - paid;
+    const devices = Array.from(list.querySelectorAll('.gps-select')).filter(s => s.value).length;
+    const abonent = money($('{{ form.abonent_tulov.id_for_label }}').value);
+
+    $('sum-paid').textContent = fmt(paid);
+    $('sum-devices').textContent = devices + ' ta';
+    $('sum-abonent').textContent = fmt(abonent * devices);
+    $('sum-debt').textContent = fmt(Math.max(debt, 0));
+    $('pay-progress').style.width = (total ? Math.min(paid / total * 100, 100) : 0) + '%';
+    const row = $('debt-row');
+    row.classList.toggle('is-debt', debt > 0);
+    row.classList.toggle('is-paid', total > 0 && debt === 0);
+    $('overpay').hidden = debt >= 0;
+    $('naqd').classList.toggle('is-invalid', debt < 0);
+    $('bank_schot').classList.toggle('is-invalid', debt < 0);
+    $('submit-btn').disabled = debt < 0;
+  }
+  ['id_summasi', 'naqd', 'bank_schot', '{{ form.abonent_tulov.id_for_label }}'].forEach(id => $(id).addEventListener('input', recalc));
+  $('pay-full').addEventListener('click', () => {
+    $('naqd').value = IDGPS.formatMoney(Math.max(money($('id_summasi').value) - money($('bank_schot').value), 0));
+    recalc();
+  });
+
+  document.addEventListener('DOMContentLoaded', syncOptions);
+})();
+</script>
+{% endblock %}

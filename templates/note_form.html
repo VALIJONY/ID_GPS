@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}{% if is_edit %}Eslatmani tahrirlash{% else %}Yangi eslatma{% endif %}{% endblock %}
+{% block breadcrumb %}<a href="{% url 'note-list' %}">Eslatmalar</a><svg class="icon icon-sm"><use href="#i-chevron-right"></use></svg><span class="current">{% if is_edit %}Tahrirlash{% else %}Yangi{% endif %}</span>{% endblock %}
+
+{% block content %}
+<div class="form-narrow" style="max-width:680px">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">{% if is_edit %}Eslatmani tahrirlash{% else %}Yangi eslatma{% endif %}</h1>
+      <p class="page-subtitle">Eslatma barcha hodimlarga ko'rinadi</p>
+    </div>
+    <a href="{% url 'note-list' %}" class="btn btn--ghost"><svg class="icon icon-sm"><use href="#i-arrow-left"></use></svg>Orqaga</a>
+  </div>
+
+  <form method="post" action="{% if is_edit %}{% url 'note-update' note.id %}{% else %}{% url 'note-add' %}{% endif %}" class="card">
+    {% csrf_token %}
+    <div class="card__body">
+      {% if error %}<div class="alert alert--danger"><svg class="icon icon-sm"><use href="#i-alert"></use></svg>{{ error }}</div>{% endif %}
+      <div class="field">
+        <label class="label" for="note">Eslatma matni <span class="req">*</span></label>
+        <textarea id="note" name="note" rows="8" maxlength="1000" class="textarea {% if error %}is-invalid{% endif %}" required autofocus placeholder="Masalan: Ertaga 10:00 da «Trans Logistic» mijoziga 3 ta GPS o'rnatish…">{% if note %}{{ note.izoh }}{% endif %}</textarea>
+        <div class="char-count" data-counter-for="note">1000 ta belgi qoldi</div>
+      </div>
+    </div>
+    <div class="card__footer form-actions">
+      <a href="{% url 'note-list' %}" class="btn btn--secondary">Bekor qilish</a>
+      <button type="submit" class="btn btn--primary"><svg class="icon icon-sm"><use href="#i-save"></use></svg>Saqlash</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

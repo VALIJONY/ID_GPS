@@ -1,325 +1,104 @@
-{% extends 'base.html'%}
-{% load static %}
-{% load humanize %}
+{% extends 'base.html' %}
+{% load ui %}
+{% block title %}Sotuvlar{% endblock %}
+{% block breadcrumb %}<a href="{% url 'home' %}">Bosh sahifa</a><svg class="icon icon-sm"><use href="#i-chevron-right"></use></svg><span class="current">Sotuvlar</span>{% endblock %}
+
 {% block content %}
-
-<div class="container mx-auto px-4">
-    <div class="mt-6">
-        {% if request.path != '/sotuv/add/' %}
-        <a href="{% url 'sotish_add' %}" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
-            Yangi sotuv qo'shish
-        </a>
-        {% else %}
-        <a href="{% url 'sotish_list' %}" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
-            Orqaga
-        </a>
-        {% endif %}
-    </div>
-
-    {% if request.path != '/sotuv/add/' %}
-    <div class="mt-10">
-        <h1 class="text-2xl font-semibold mb-6">Sotuvlar ro'yxati</h1>
-        <div class="overflow-x-auto bg-white rounded-lg shadow">
-            <table class="min-w-full table-auto">
-                <thead>
-                    <tr class="bg-blue-500 text-white">
-                        <th class="px-4 py-3">Mijoz</th>
-                        <th class="px-4 py-3">Telefon raqam</th>
-                        <th class="px-4 py-3">Sana</th>
-                        <th class="px-4 py-3">Summasi</th>
-                        <th class="px-4 py-3">Master</th>
-                        <th class="px-4 py-3">Master Summasi</th>
-                        <th class="px-4 py-3">Holat</th>
-                        <th class="px-4 py-3">Tahrirlash</th>
-                        <th class="px-4 py-3">O`chirish</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for sotish in sotish_items %}
-                    <tr class="border-b border-gray-200 hover:bg-gray-50">
-                        <td class="px-4 py-3">{{ sotish.mijoz }}</td>
-                        <td class="px-4 py-3">{{ sotish.mijoz_tel_raqam }}</td>
-                        <td class="px-4 py-3">{{ sotish.sana }}</td>
-                        <td class="px-4 py-3 number-format">{{ sotish.summasi|intcomma }}</td>
-                        <td class="px-4 py-3">{{ sotish.master }}</td>
-                        <td class="px-4 py-3 number-format">{{ sotish.master_summasi|intcomma }}</td>
-                        <td class="px-4 py-3">
-                            {% if sotish.karta > 0 %}
-                            <span class="text-red-500 font-semibold">Qarzdor-{{sotish.karta|intcomma}}</span>
-                            {% else %}
-                            <span class="text-green-500 font-semibold">Sotilgan</span>
-                            {% endif %}
-                        </td>
-                        <td class="px-4 py-3">
-                            <a href="{% url 'sotish_update' sotish.pk %}" 
-                               class="text-blue-500 hover:text-blue-700 transition">
-                                Tahrirlash
-                            </a>
-                        </td>
-                        <td class="px-4 py-3">
-                            <form method="post" action="{% url 'sotish_delete' sotish.id %}" class="inline">
-                                {% csrf_token %}
-                                <button type="submit" 
-                                        class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700 transition">
-                                    O'chirish
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    {% endif %}
-
-    {% if request.path == '/sotuv/add/' %}
-    <div class="mt-6">
-        <form method="POST" class="bg-white p-6 rounded-lg shadow-md max-w-4xl mx-auto">
-            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Sotish Formasi</h2>
-            {% csrf_token %}
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Mijoz ma'lumotlari -->
-                <div class="form-group">
-                    <label class="block text-gray-700 font-medium mb-2">Mijoz</label>
-                    {{form.mijoz}}
-                </div>
-
-                <div class="form-group">
-                    <label class="block text-gray-700 font-medium mb-2">Mijoz telefon raqami</label>
-                    {{form.mijoz_tel_raqam}}
-                </div>
-
-                <div class="form-group">
-                    <label class="block text-gray-700 font-medium mb-2">Sana</label>
-                    {{form.sana}}
-                </div>
-
-                <div class="form-group">
-                    <label class="block text-gray-700 font-medium mb-2">Dasturiy ta'minot</label>
-                    {{form.dasturiy_taminot}}
-                </div>
-
-                <!-- Login ma'lumotlari -->
-                <div class="form-group">
-                    <label class="block text-gray-700 font-medium mb-2">Username</label>
-                    {{form.username}}
-                </div>
-
-                <div class="form-group">
-                    <label class="block text-gray-700 font-medium mb-2">Parol</label>
-                    {{form.password}}
-                </div>
-
-                <!-- Master ma'lumotlari -->
-                <div class="form-group">
-                    <label class="block text-gray-700 font-medium mb-2">Master</label>
-                    {{form.master}}
-                </div>
-
-                <div class="form-group">
-                    <label class="block text-gray-700 font-medium mb-2">Master summasi</label>
-                    <input type="text" name="master_summasi" id="master_summasi" 
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" 
-                           onkeyup="formatNumber(this);">
-                </div>
-
-                <div class="form-group">
-                    <label class="block text-gray-700 font-medium mb-2">Bitta gps uchun abonent to'lov</label>
-                    {{form.abonent_tulov}}
-                </div>
-            </div>
-
-            <!-- GPS va SIM karta -->
-            <div id="gps-container" class="mt-6">
-                <div class="gps-fields">
-                    <div class="gps-field mb-4">
-                        <div class="grid grid-cols-4 gap-4">
-                            <!-- GPS tanlash -->
-                            <div class="form-group">
-                                <label class="block text-gray-700 font-medium mb-2">GPS ID</label>
-                                <select name="gps_id" class="gps-select w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required onchange="updateGpsOptions()">
-                                    <option value="">GPS tanlang</option>
-                                    {% for gps in form.fields.gps_id.queryset %}
-                                        <option value="{{ gps.id }}">{{ gps.gps_id }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-
-                            <!-- SIM karta -->
-                            <div class="form-group">
-                                <label class="block text-gray-700 font-medium mb-2">SIM karta</label>
-                                <input type="text" name="sim_karta" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
-                            </div>
-
-                            <!-- Mashina turi -->
-                            <div class="form-group">
-                                <label class="block text-gray-700 font-medium mb-2">Mashina turi</label>
-                                <input type="text" name="mashina_turi" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required placeholder="Masalan: Cobalt">
-                            </div>
-
-                            <!-- Davlat raqami -->
-                            <div class="form-group">
-                                <label class="block text-gray-700 font-medium mb-2">Davlat raqami</label>
-                                <input type="text" name="davlat_raqami" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required placeholder="Masalan: 01A777AA">
-                            </div>
-                        </div>
-                        <button type="button" onclick="removeGpsField(this)" class="mt-2 bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition">
-                            O'chirish
-                        </button>
-                    </div>
-                </div>
-                <button type="button" onclick="addGpsField()" 
-                        class="mt-4 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition">
-                    + GPS qo'shish
-                </button>
-            </div>
-
-            <!-- To'lov ma'lumotlari -->
-            <div class="mt-6 space-y-4">
-                <div class="form-group">
-                    <label class="block text-gray-700 font-medium mb-2">Gpslarning umumiy summa</label>
-                    <input type="text" name="summasi" id="id_summasi" 
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" 
-                           onkeyup="formatNumber(this); calculateQarz();">
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="form-group">
-                        <label class="block text-gray-700 font-medium mb-2">Naqd</label>
-                        <input type="text" name="naqd" id="naqd"
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" 
-                               onkeyup="formatNumber(this); calculateQarz();">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="block text-gray-700 font-medium mb-2">Bank hisob</label>
-                        <input type="text" name="bank_schot" id="bank_schot"
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" 
-                               onkeyup="formatNumber(this); calculateQarz();">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="block text-gray-700 font-medium mb-2">Qarz</label>
-                        <input type="text" name="karta" id="karta" readonly 
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100">
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-6">
-                <button type="submit" 
-                        class="w-full bg-blue-500 text-white py-3 px-4 rounded-lg hover:bg-blue-600 transition duration-200">
-                    Saqlash
-                </button>
-            </div>
-        </form>
-    </div>
-    {% endif %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Sotuvlar</h1>
+    <p class="page-subtitle">Barcha GPS sotuvlari, to'lovlar va qarzdorlik</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'sotish_add' %}" class="btn btn--primary"><svg class="icon icon-sm"><use href="#i-plus"></use></svg>Yangi sotuv</a>
+  </div>
 </div>
 
-<script>
-    function updateGpsOptions() {
-        const selects = document.querySelectorAll('.gps-select');
-        const selectedValues = Array.from(selects)
-            .map(select => select.value)
-            .filter(value => value !== "");
+<section class="kpis">
+  <div class="kpi">
+    <div class="kpi__head"><span class="kpi__label">Sotuvlar soni</span><span class="kpi__icon"><svg class="icon"><use href="#i-cart"></use></svg></span></div>
+    <div class="kpi__value">{{ sotish_items|length }}</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi__head"><span class="kpi__label">Umumiy savdo</span><span class="kpi__icon kpi__icon--success"><svg class="icon"><use href="#i-coins"></use></svg></span></div>
+    <div class="kpi__value">{{ totals.revenue|som }}<small>so'm</small></div>
+  </div>
+  <div class="kpi">
+    <div class="kpi__head"><span class="kpi__label">Qarzdorlik</span><span class="kpi__icon kpi__icon--danger"><svg class="icon"><use href="#i-alert"></use></svg></span></div>
+    <div class="kpi__value">{{ totals.debt|som }}<small>so'm</small></div>
+    <div class="kpi__meta"><strong>{{ totals.debtors }}</strong> ta qarzdor</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi__head"><span class="kpi__label">Ustalar summasi</span><span class="kpi__icon kpi__icon--warning"><svg class="icon"><use href="#i-user"></use></svg></span></div>
+    <div class="kpi__value">{{ totals.master|som }}<small>so'm</small></div>
+  </div>
+</section>
 
-        selects.forEach(select => {
-            const currentValue = select.value;
-            Array.from(select.options).forEach(option => {
-                if (option.value && option.value !== currentValue) {
-                    option.style.display = selectedValues.includes(option.value) ? 'none' : '';
-                }
-            });
-        });
-    }
+<section class="card">
+  <div class="toolbar">
+    <div class="search">
+      <svg class="icon icon-sm"><use href="#i-search"></use></svg>
+      <input type="search" class="input" placeholder="Mijoz, telefon yoki usta…  ( / )" data-table-search="#sales-table" aria-label="Qidirish">
+    </div>
+    <div class="segmented">
+      <button type="button" class="is-active" data-filter-table="#sales-table" data-filter-value="">Barchasi</button>
+      <button type="button" data-filter-table="#sales-table" data-filter-value="debt">Qarzdorlar</button>
+      <button type="button" data-filter-table="#sales-table" data-filter-value="paid">To'langan</button>
+    </div>
+    <div class="toolbar__end result-count"><span data-count-for="#sales-table">{{ sotish_items|length }}</span> ta natija</div>
+  </div>
 
-    function addGpsField() {
-        const container = document.querySelector('.gps-fields');
-        const newField = document.createElement('div');
-        newField.className = 'gps-field mb-4';
-        
-        newField.innerHTML = `
-            <div class="grid grid-cols-4 gap-4">
-                <!-- GPS tanlash -->
-                <div class="form-group">
-                    <label class="block text-gray-700 font-medium mb-2">GPS ID</label>
-                    <select name="gps_id" class="gps-select w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required onchange="updateGpsOptions()">
-                        <option value="">GPS tanlang</option>
-                        {% for gps in form.fields.gps_id.queryset %}
-                            <option value="{{ gps.id }}">{{ gps.gps_id }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <!-- SIM karta -->
-                <div class="form-group">
-                    <label class="block text-gray-700 font-medium mb-2">SIM karta</label>
-                    <input type="text" name="sim_karta" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
-                </div>
-
-                <!-- Mashina turi -->
-                <div class="form-group">
-                    <label class="block text-gray-700 font-medium mb-2">Mashina turi</label>
-                    <input type="text" name="mashina_turi" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required placeholder="Masalan: Cobalt">
-                </div>
-
-                <!-- Davlat raqami -->
-                <div class="form-group">
-                    <label class="block text-gray-700 font-medium mb-2">Davlat raqami</label>
-                    <input type="text" name="davlat_raqami" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required placeholder="Masalan: 01A777AA">
-                </div>
+  {% if sotish_items %}
+  <div class="table-wrap">
+    <table class="table table--stack" id="sales-table">
+      <thead>
+        <tr>
+          <th data-sort="text">Mijoz</th>
+          <th data-sort="text">Sana</th>
+          <th data-sort="num" class="ta-c">GPS</th>
+          <th data-sort="num" class="ta-r">Summa</th>
+          <th data-sort="text">Usta</th>
+          <th data-sort="num" class="ta-r">Usta summasi</th>
+          <th data-sort="num">Holat</th>
+          <th class="ta-r"><span class="sr-only">Amallar</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in sotish_items %}
+        <tr data-status="{% if s.karta > 0 %}debt{% else %}paid{% endif %}">
+          <td class="cell-primary">
+            <div class="cell-main">{{ s.mijoz }}</div>
+            <div class="cell-sub">{{ s.mijoz_tel_raqam }}{% if s.dasturiy_taminot %} · {{ s.dasturiy_taminot }}{% endif %}</div>
+          </td>
+          <td data-label="Sana" class="nowrap num" data-value="{{ s.sana|date:'Y-m-d' }}">{{ s.sana|date:"d.m.Y" }}</td>
+          <td data-label="GPS" class="ta-c num" data-value="{{ s.gps_count }}"><span class="badge badge--primary badge--plain">{{ s.gps_count }}</span></td>
+          <td data-label="Summa" class="ta-r money" data-value="{{ s.summasi }}">{{ s.summasi|som }}</td>
+          <td data-label="Usta">{{ s.master|default:"—" }}</td>
+          <td data-label="Usta summasi" class="ta-r money" data-value="{{ s.master_summasi }}">{{ s.master_summasi|som }}</td>
+          <td data-label="Holat" data-value="{{ s.karta }}">
+            {% if s.karta > 0 %}<span class="badge badge--danger">Qarz: {{ s.karta|som }}</span>{% else %}<span class="badge badge--success">To'langan</span>{% endif %}
+          </td>
+          <td class="ta-r cell-actions">
+            <div class="actions">
+              <a href="{% url 'sotish_update' s.pk %}" class="btn-icon btn-icon--primary" title="Tahrirlash" aria-label="Tahrirlash"><svg class="icon icon-sm"><use href="#i-edit"></use></svg></a>
+              <form method="post" action="{% url 'sotish_delete' s.pk %}" data-confirm="«{{ s.mijoz }}» sotuvi o'chiriladi va {{ s.gps_count }} ta GPS skladga qaytariladi.">
+                {% csrf_token %}
+                <button type="submit" class="btn-icon btn-icon--danger" title="O'chirish" aria-label="O'chirish"><svg class="icon icon-sm"><use href="#i-trash"></use></svg></button>
+              </form>
             </div>
-            <button type="button" onclick="removeGpsField(this)" class="mt-2 bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition">
-                O'chirish
-            </button>
-        `;
-        
-        container.appendChild(newField);
-        updateGpsOptions();
-    }
-
-    function removeGpsField(button) {
-        button.closest('.gps-field').remove();
-        updateGpsOptions();
-    }
-
-    // Sahifa yuklanganda GPS tanlovlarini yangilash
-    document.addEventListener('DOMContentLoaded', function() {
-        updateGpsOptions();
-    });
-
-    function formatNumber(input) {
-    let value = input.value.replace(/\D/g, '');
-    value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-    input.value = value;
-}
-
-function parseFormattedNumber(value) {
-    return parseInt(value.replace(/\s/g, '') || 0);
-}
-
-function calculateQarz() {
-    const summasi = parseFormattedNumber(document.getElementById('id_summasi').value);
-    const naqd = parseFormattedNumber(document.getElementById('naqd').value);
-    const bank_schot = parseFormattedNumber(document.getElementById('bank_schot').value);
-    const qarz = summasi - (naqd + bank_schot);
-    
-    if (qarz < 0 || isNaN(summasi) || summasi === 0) {
-        document.getElementById('karta').value = '0';
-        if (qarz < 0) {
-            alert("To'lov summasi umumiy summadan oshib ketdi!");
-            document.getElementById('naqd').value = '0';
-            document.getElementById('bank_schot').value = '0';
-        }
-    } else {
-        document.getElementById('karta').value = qarz.toLocaleString('en-US').replace(/,/g, ' ');
-    }
-}
-
-
-
-</script>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty">
+    <div class="empty__icon"><svg class="icon icon-lg"><use href="#i-cart"></use></svg></div>
+    <div class="empty__title">Hali sotuv yo'q</div>
+    <p class="empty__text">Skladdagi GPS qurilmalarni mijozga sotish uchun yangi sotuv yarating.</p>
+    <a href="{% url 'sotish_add' %}" class="btn btn--primary"><svg class="icon icon-sm"><use href="#i-plus"></use></svg>Yangi sotuv</a>
+  </div>
+  {% endif %}
+</section>
 {% endblock %}

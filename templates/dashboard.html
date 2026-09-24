@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load static ui %}
+{% block title %}Bosh sahifa{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Xush kelibsiz, {{ request.user|display_name }} 👋</h1>
+    <p class="page-subtitle">{{ month_name }} oyi bo'yicha qisqacha holat</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'skladadd' %}" class="btn btn--secondary"><svg class="icon icon-sm"><use href="#i-box"></use></svg>GPS qabul qilish</a>
+    <a href="{% url 'sotish_add' %}" class="btn btn--primary"><svg class="icon icon-sm"><use href="#i-plus"></use></svg>Yangi sotuv</a>
+  </div>
+</div>
+
+<section class="kpis" aria-label="Asosiy ko'rsatkichlar">
+  <div class="kpi">
+    <div class="kpi__head"><span class="kpi__label">Bu oy tushum</span><span class="kpi__icon kpi__icon--success"><svg class="icon"><use href="#i-coins"></use></svg></span></div>
+    <div class="kpi__value">{{ month_revenue|som }}<small>so'm</small></div>
+    <div class="kpi__meta">
+      {% if revenue_delta is not None %}
+        <span class="delta {% if revenue_delta >= 0 %}delta--up{% else %}delta--down{% endif %}">{% if revenue_delta >= 0 %}▲{% else %}▼{% endif %} {{ revenue_delta }}%</span> o'tgan oyga nisbatan
+      {% else %}O'tgan oyda sotuv bo'lmagan{% endif %}
+    </div>
+  </div>
+  <div class="kpi">
+    <div class="kpi__head"><span class="kpi__label">Skladda mavjud</span><span class="kpi__icon"><svg class="icon"><use href="#i-box"></use></svg></span></div>
+    <div class="kpi__value">{{ stock.available }}<small>dona</small></div>
+    <div class="kpi__meta">Jami sotilgan: <strong>{{ stock.sold }}</strong>{% if stock.available < 5 %} · <span class="text-warning fw-600">zaxira kam</span>{% endif %}</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi__head"><span class="kpi__label">Umumiy qarzdorlik</span><span class="kpi__icon kpi__icon--danger"><svg class="icon"><use href="#i-alert"></use></svg></span></div>
+    <div class="kpi__value">{{ debt_total|som }}<small>so'm</small></div>
+    <div class="kpi__meta"><strong>{{ debtors }}</strong> ta qarzdor mijoz</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi__head"><span class="kpi__label">Faol GPS / mijozlar</span><span class="kpi__icon kpi__icon--info"><svg class="icon"><use href="#i-satellite"></use></svg></span></div>
+    <div class="kpi__value">{{ active_gps }}<small>/ {{ clients_count }}</small></div>
+    <div class="kpi__meta">Bu oy rasxod: <strong>{{ month_expense|som }}</strong></div>
+  </div>
+</section>
+
+<div class="grid grid-main-side">
+  <div class="stack">
+    <section class="card">
+      <div class="card__header">
+        <div>
+          <h2 class="card__title">Tushum va rasxod</h2>
+          <p class="card__subtitle">Oxirgi 6 oy, so'mda</p>
+        </div>
+        <a href="{% url 'statistika' %}" class="btn btn--ghost btn--sm">Batafsil <svg class="icon icon-sm"><use href="#i-chevron-right"></use></svg></a>
+      </div>
+      <div class="card__body"><div class="chart-box chart-box--sm"><canvas id="finance-chart" aria-label="Oxirgi 6 oy tushum va rasxod grafigi" role="img"></canvas></div></div>
+    </section>
+
+    <section class="card">
+      <div class="card__header">
+        <h2 class="card__title">So'nggi sotuvlar</h2>
+        <a href="{% url 'sotish_list' %}" class="btn btn--ghost btn--sm">Barchasi <svg class="icon icon-sm"><use href="#i-chevron-right"></use></svg></a>
+      </div>
+      {% if recent_sales %}
+      <div class="table-wrap">
+        <table class="table table--stack">
+          <thead><tr><th>Mijoz</th><th>Sana</th><th class="ta-c">GPS</th><th class="ta-r">Summa</th><th>Holat</th></tr></thead>
+          <tbody>
+            {% for s in recent_sales %}
+            <tr>
+              <td class="cell-primary"><div class="cell-main">{{ s.mijoz }}</div><div class="cell-sub">{{ s.mijoz_tel_raqam }}</div></td>
+              <td data-label="Sana" class="nowrap num">{{ s.sana|date:"d.m.Y" }}</td>
+              <td data-label="GPS" class="ta-c num">{{ s.gps_count }}</td>
+              <td data-label="Summa" class="ta-r money">{{ s.summasi|som }}</td>
+              <td data-label="Holat">{% if s.karta > 0 %}<span class="badge badge--danger">Qarz {{ s.karta|som }}</span>{% else %}<span class="badge badge--success">To'langan</span>{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty"><div class="empty__icon"><svg class="icon icon-lg"><use href="#i-cart"></use></svg></div><div class="empty__title">Hali sotuv yo'q</div><a href="{% url 'sotish_add' %}" class="btn btn--primary btn--sm">Birinchi sotuvni qo'shish</a></div>
+      {% endif %}
+    </section>
+  </div>
+
+  <div class="stack">
+    <section class="card">
+      <div class="card__header"><div><h2 class="card__title">{{ month_name }} abonent to'lovlari</h2><p class="card__subtitle">{{ active_gps }} ta faol GPS</p></div></div>
+      <div class="card__body">
+        {% with total=active_gps|default:1 %}
+        <div class="progress" style="display:flex;gap:2px;background:var(--surface-3)">
+          <div class="progress__bar" style="width:{% widthratio payments.paid total 100 %}%;border-radius:0"></div>
+          <div class="progress__bar" style="width:{% widthratio payments.unpaid total 100 %}%;background:var(--danger);border-radius:0"></div>
+        </div>
+        {% endwith %}
+        <div class="summary mt-4">
+          <div class="summary__row"><span class="flex items-center gap-2"><span class="swatch" style="background:var(--success)"></span>To'langan</span><strong>{{ payments.paid }}</strong></div>
+          <div class="summary__row"><span class="flex items-center gap-2"><span class="swatch" style="background:var(--danger)"></span>To'lanmagan</span><strong>{{ payments.unpaid }}</strong></div>
+          <div class="summary__row"><span class="flex items-center gap-2"><span class="swatch" style="background:var(--border-strong)"></span>Belgilanmagan</span><strong>{{ payments.unmarked }}</strong></div>
+        </div>
+        <a href="{% url 'bugalteriya' %}" class="btn btn--secondary btn--block mt-4">Bugalteriyaga o'tish</a>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card__header"><h2 class="card__title">Tezkor amallar</h2></div>
+      <div class="card__body quick-actions">
+        <a class="quick-action" href="{% url 'sotish_add' %}"><span class="kpi__icon"><svg class="icon icon-sm"><use href="#i-cart"></use></svg></span>Yangi sotuv</a>
+        <a class="quick-action" href="{% url 'skladadd' %}"><span class="kpi__icon kpi__icon--info"><svg class="icon icon-sm"><use href="#i-box"></use></svg></span>GPS qabul qilish</a>
+        <a class="quick-action" href="{% url 'rasxod_add' %}"><span class="kpi__icon kpi__icon--warning"><svg class="icon icon-sm"><use href="#i-wallet"></use></svg></span>Rasxod yozish</a>
+        <a class="quick-action" href="{% url 'note-add' %}"><span class="kpi__icon kpi__icon--success"><svg class="icon icon-sm"><use href="#i-note"></use></svg></span>Eslatma</a>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card__header"><h2 class="card__title">Eslatmalar</h2><a href="{% url 'note-list' %}" class="btn btn--ghost btn--sm">Barchasi</a></div>
+      {% if recent_notes %}
+      <ul class="list">
+        {% for n in recent_notes %}
+        <li class="list__item">
+          <span class="avatar avatar--sm">{{ n.user|initials }}</span>
+          <div class="list__main"><div class="list__title" style="font-weight:500">{{ n.izoh|truncatechars:70 }}</div><div class="list__meta">{{ n.user|display_name }} · {{ n.sana|date:"d.m.Y" }}</div></div>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="card__body text-muted">Eslatmalar yo'q.</div>
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="{% static 'js/charts.js' %}?v=2"></script>
+<script>
+  (function () {
+    const d = {{ chart_json|safe }};
+    IDGPSCharts.render({
+      el: 'finance-chart', type: 'bar', labels: d.labels, money: true,
+      series: [
+        { label: 'Tushum', data: d.revenue, color: '--series-1' },
+        { label: 'Rasxod', data: d.expense, color: '--series-2' },
+      ],
+    });
+  })();
+</script>
+{% endblock %}

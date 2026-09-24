@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load ui %}
+{% block title %}{% if object %}Hodimni tahrirlash{% else %}Yangi hodim{% endif %}{% endblock %}
+{% block breadcrumb %}<a href="{% url 'hodim-list' %}">Hodimlar</a><svg class="icon icon-sm"><use href="#i-chevron-right"></use></svg><span class="current">{% if object %}{{ object|display_name }}{% else %}Yangi hodim{% endif %}</span>{% endblock %}
+
+{% block content %}
+<div class="form-narrow" style="max-width:640px">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">{% if object %}Hodimni tahrirlash{% else %}Yangi hodim{% endif %}</h1>
+      <p class="page-subtitle">{% if object %}@{{ object.username }}{% else %}Hodim uchun tizimga kirish hisobini yarating{% endif %}</p>
+    </div>
+    <a href="{% url 'hodim-list' %}" class="btn btn--ghost"><svg class="icon icon-sm"><use href="#i-arrow-left"></use></svg>Orqaga</a>
+  </div>
+
+  <form method="post" class="card" novalidate autocomplete="off">
+    {% csrf_token %}
+    <div class="card__body">
+      {% for e in form.non_field_errors %}<div class="alert alert--danger">{{ e }}</div>{% endfor %}
+      <div class="form-section">
+        <div class="form-section__head"><span class="form-section__num">1</span><div class="form-section__title">Shaxsiy ma'lumotlar</div></div>
+        <div class="form-grid">
+          {% include 'partials/field.html' with field=form.firstname %}
+          {% include 'partials/field.html' with field=form.last_name %}
+          {% include 'partials/field.html' with field=form.position full=True %}
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="form-section__head"><span class="form-section__num">2</span><div class="form-section__title">Kirish ma'lumotlari</div></div>
+        <div class="form-grid">
+          {% include 'partials/field.html' with field=form.username %}
+          <div class="field">
+            <label class="label" for="{{ form.password.id_for_label }}">{{ form.password.label }}{% if form.password.field.required %} <span class="req">*</span>{% endif %}</label>
+            <div class="input-group">
+              {{ form.password }}
+              <button type="button" class="btn-icon input-action" data-reveal="#{{ form.password.id_for_label }}" aria-label="Parolni ko'rsatish"><svg class="icon icon-sm"><use href="#i-eye"></use></svg></button>
+            </div>
+            {% if form.password.help_text %}<div class="hint">{{ form.password.help_text }}</div>{% endif %}
+            {% for e in form.password.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="span-full">
+            {% include 'partials/field.html' with field=form.is_staff %}
+            <p class="hint mt-2">Belgilansa, hodim boshqa hodimlarni qo'sha va tahrirlay oladi.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card__footer form-actions">
+      <a href="{% url 'hodim-list' %}" class="btn btn--secondary">Bekor qilish</a>
+      <button type="submit" class="btn btn--primary"><svg class="icon icon-sm"><use href="#i-save"></use></svg>Saqlash</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

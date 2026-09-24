@@ -1,251 +1,180 @@
 {% extends 'base.html' %}
-{% load static %}
-{% load custom_filters %}
+{% block title %}Bugalteriya {{ current_year }}{% endblock %}
+{% block breadcrumb %}<a href="{% url 'home' %}">Bosh sahifa</a><svg class="icon icon-sm"><use href="#i-chevron-right"></use></svg><span class="current">Bugalteriya</span>{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-50 py-8">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Sarlavha va Filtrlar -->
-        <div class="mb-8 flex justify-between items-center">
-            <h1 class="text-3xl font-bold text-gray-900">
-                {{ current_year }} yil bugalteriya
-            </h1>
-            <div class="flex space-x-4">
-                <select name="yil" class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    {% for yil in years %}
-                    <option value="{{ yil }}" {% if yil == current_year %}selected{% endif %}>{{ yil }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
-
-        <!-- Bugalteriya jadvali -->
-        <div class="bg-white rounded-lg shadow overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead>
-                    <tr>
-                        <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mijoz</th>
-                        <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">GPS</th>
-                        {% for oy in oylar %}
-                        <th class="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" colspan="2">{{ oy }}</th>
-                        {% endfor %}
-                    </tr>
-                    <tr>
-                        <th colspan="2" class="bg-gray-50"></th>
-                        {% for oy in oylar %}
-                        <th class="px-2 py-2 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase">Abonent</th>
-                        <th class="px-2 py-2 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase">SIM</th>
-                        {% endfor %}
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    {% for item in bugalteriya_data %}
-                        {% for gps_item in item.gps_data %}
-                            <tr>
-                                {% if forloop.first %}
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" rowspan="{{ item.gps_data|length }}">
-                                    {{ item.sotish.mijoz }}
-                                </td>
-                                {% endif %}
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {{ gps_item.gps.gps_id }}
-                                </td>
-                                {% for oy in oylar %}
-                                {% with tolov=gps_item.tolovlar|get_item:oy %}
-                                <!-- Abonent to'lovi -->
-                                <td class="px-2 py-4 whitespace-nowrap text-center">
-                                    <button 
-                                        data-tolov-id="{{ tolov.abonent.id }}"
-                                        data-sotish-id="{{ item.sotish.id }}"
-                                        data-gps-id="{{ gps_item.gps.id }}"
-                                        data-oy="{{ oy }}"
-                                        data-yil="{{ current_year }}"
-                                        data-type="abonent"
-                                        data-is-superuser="{{ request.user.is_superuser|yesno:'true,false' }}"
-                                        class="tolov-btn px-3 py-1 rounded-full text-sm font-medium
-                                        {% if tolov.tolov is None %}
-                                            bg-gray-100 text-gray-800 hover:bg-gray-200
-                                        {% elif tolov.abonent.status is True %}
-                                            bg-green-100 text-green-800 hover:bg-green-200
-                                        {% elif tolov.abonent.status is False %}
-                                            bg-red-100 text-red-800 hover:bg-red-200
-                                        {% else %}
-                                            bg-gray-100 text-gray-800 hover:bg-gray-200
-                                        {% endif %}">
-                                        {% if tolov.tolov is None %}
-                                            To'lovni tasdiqlash
-                                        {% elif tolov.abonent.status is True %}
-                                            To'langan
-                                        {% elif tolov.abonent.status is False %}
-                                            To'lanmagan
-                                        {% else %}
-                                            Null
-                                        {% endif %}
-                                    </button>
-                                </td>
-                                
-                                <!-- SIM karta to'lovi -->
-                                <td class="px-2 py-4 whitespace-nowrap text-center">
-                                    <button 
-                                        data-tolov-id="{{ tolov.sim.id }}"
-                                        data-sotish-id="{{ item.sotish.id }}"
-                                        data-gps-id="{{ gps_item.gps.id }}"
-                                        data-oy="{{ oy }}"
-                                        data-yil="{{ current_year }}"
-                                        data-type="sim"
-                                        data-is-superuser="{{ request.user.is_superuser|yesno:'true,false' }}"
-                                        class="tolov-btn px-3 py-1 rounded-full text-sm font-medium
-                                        {% if tolov.tolov is None %}
-                                            bg-gray-100 text-gray-800 hover:bg-gray-200
-                                        {% elif tolov.sim.status is True %}
-                                            bg-green-100 text-green-800 hover:bg-green-200
-                                        {% elif tolov.sim.status is False %}
-                                            bg-red-100 text-red-800 hover:bg-red-200
-                                        {% else %}
-                                            bg-gray-100 text-gray-800 hover:bg-gray-200
-                                        {% endif %}">
-                                        {% if tolov.tolov is None %}
-                                            To'lovni tasdiqlash
-                                        {% elif tolov.sim.status is True %}
-                                            To'langan
-                                        {% elif tolov.sim.status is False %}
-                                            To'lanmagan
-                                        {% else %}
-                                            Null
-                                        {% endif %}
-                                    </button>
-                                </td>
-                                {% endwith %}
-                                {% endfor %}
-                            </tr>
-                        {% endfor %}
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Bugalteriya · {{ current_year }}</h1>
+    <p class="page-subtitle">Har bir GPS uchun oylik abonent (A) va SIM karta (S) to'lovlari</p>
+  </div>
+  <div class="page-actions">
+    <label class="sr-only" for="year-select">Yil</label>
+    <select id="year-select" class="select" style="width:auto;min-width:120px" onchange="location.href='?yil='+this.value">
+      {% for yil in years %}<option value="{{ yil }}" {% if yil == current_year %}selected{% endif %}>{{ yil }}-yil</option>{% endfor %}
+    </select>
+  </div>
 </div>
 
+{% if current_oy %}
+<section class="kpis">
+  <div class="kpi">
+    <div class="kpi__head"><span class="kpi__label">{{ current_oy }}: to'langan</span><span class="kpi__icon kpi__icon--success"><svg class="icon"><use href="#i-check-circle"></use></svg></span></div>
+    <div class="kpi__value" id="kpi-paid">{{ summary.paid }}</div>
+    <div class="kpi__meta">Abonent to'lovi, GPS soni</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi__head"><span class="kpi__label">{{ current_oy }}: to'lanmagan</span><span class="kpi__icon kpi__icon--danger"><svg class="icon"><use href="#i-x"></use></svg></span></div>
+    <div class="kpi__value" id="kpi-unpaid">{{ summary.unpaid }}</div>
+    <div class="kpi__meta">Eslatma yuborish kerak</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi__head"><span class="kpi__label">{{ current_oy }}: belgilanmagan</span><span class="kpi__icon kpi__icon--warning"><svg class="icon"><use href="#i-info"></use></svg></span></div>
+    <div class="kpi__value" id="kpi-none">{{ summary.none }}</div>
+    <div class="kpi__meta">Holati hali kiritilmagan</div>
+  </div>
+</section>
+{% endif %}
+
+<section class="card">
+  <div class="toolbar">
+    <div class="search">
+      <svg class="icon icon-sm"><use href="#i-search"></use></svg>
+      <input type="search" class="input" placeholder="Mijoz yoki GPS ID…  ( / )" data-table-search="#ledger" aria-label="Qidirish">
+    </div>
+    <div class="toolbar__end legend" aria-label="Belgilar">
+      <span class="legend__item"><span class="pay" data-state="none"><svg class="icon"><use href="#i-plus"></use></svg></span>Belgilanmagan</span>
+      <span class="legend__item"><span class="pay" data-state="unpaid"><svg class="icon"><use href="#i-x"></use></svg></span>To'lanmagan</span>
+      <span class="legend__item"><span class="pay" data-state="paid"><svg class="icon"><use href="#i-check"></use></svg></span>To'langan</span>
+      <span class="legend__item"><span class="pay" data-state="null"><svg class="icon"><use href="#i-minus"></use></svg></span>Null (admin)</span>
+    </div>
+  </div>
+
+  {% if rows %}
+  <div class="table-wrap" style="max-height:calc(100vh - 220px)">
+    <table class="table ledger" id="ledger">
+      <thead>
+        <tr>
+          <th rowspan="2" class="col-client">Mijoz</th>
+          <th rowspan="2" class="col-gps">GPS</th>
+          {% for oy in oylar %}<th colspan="2" class="month-start {% if oy == current_oy %}is-current-month{% endif %}">{{ oy }}</th>{% endfor %}
+        </tr>
+        <tr>
+          {% for oy in oylar %}
+          <th class="month-start {% if oy == current_oy %}is-current-month{% endif %}" title="Abonent to'lovi">A</th>
+          <th class="{% if oy == current_oy %}is-current-month{% endif %}" title="SIM karta to'lovi">S</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        {% for device in row.devices %}
+        <tr data-group="s{{ row.sotish.id }}" data-search="{{ row.sotish.mijoz }} {{ device.gps.gps_id }}">
+          {% if forloop.first %}
+          <td class="col-client" rowspan="{{ row.devices|length }}">
+            <div class="cell-main" style="white-space:normal">{{ row.sotish.mijoz }}</div>
+            <div class="cell-sub">{{ row.sotish.mijoz_tel_raqam }}</div>
+          </td>
+          {% endif %}
+          <td class="col-gps"><span class="tag">{{ device.gps.gps_id }}</span></td>
+          {% for cell in device.cells %}
+          <td class="month-start {% if cell.is_current %}is-current-month{% endif %}">
+            <button type="button" class="pay" data-state="{{ cell.abonent }}" data-type="abonent"
+                    data-key="{{ row.sotish.id }}-{{ device.gps.id }}-{{ cell.oy }}" data-tolov-id="{{ cell.id }}"
+                    data-sotish-id="{{ row.sotish.id }}" data-gps-id="{{ device.gps.id }}" data-oy="{{ cell.oy }}"
+                    {% if cell.is_current %}data-current="1"{% endif %}
+                    aria-label="{{ cell.oy }} abonent"></button>
+          </td>
+          <td class="{% if cell.is_current %}is-current-month{% endif %}">
+            <button type="button" class="pay" data-state="{{ cell.sim }}" data-type="sim"
+                    data-key="{{ row.sotish.id }}-{{ device.gps.id }}-{{ cell.oy }}" data-tolov-id="{{ cell.id }}"
+                    data-sotish-id="{{ row.sotish.id }}" data-gps-id="{{ device.gps.id }}" data-oy="{{ cell.oy }}"
+                    aria-label="{{ cell.oy }} SIM karta"></button>
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty">
+    <div class="empty__icon"><svg class="icon icon-lg"><use href="#i-ledger"></use></svg></div>
+    <div class="empty__title">{{ current_year }}-yil uchun ma'lumot yo'q</div>
+    <p class="empty__text">Bu yilgacha amalga oshirilgan sotuvlar bo'lsa, ular shu yerda ko'rinadi.</p>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Yil filtrini boshqarish
-    const yearSelect = document.querySelector('select[name="yil"]');
-    yearSelect.addEventListener('change', function() {
-        window.location.href = `?yil=${yearSelect.value}`;
+(function () {
+  const YEAR = {{ current_year }};
+  const IS_SUPERUSER = {{ request.user.is_superuser|yesno:"true,false" }};
+  const META = {
+    none:   { icon: 'plus',  label: "Belgilanmagan — bosing" },
+    unpaid: { icon: 'x',     label: "To'lanmagan" },
+    paid:   { icon: 'check', label: "To'langan" },
+    null:   { icon: 'minus', label: 'Null' },
+  };
+
+  function paint(btn, state) {
+    btn.dataset.state = state;
+    btn.innerHTML = IDGPS.icon(META[state].icon);
+    const type = btn.dataset.type === 'sim' ? 'SIM' : 'Abonent';
+    btn.title = `${btn.dataset.oy} · ${type}: ${META[state].label}`;
+    if (state === 'null' && !IS_SUPERUSER) btn.style.cursor = 'not-allowed';
+    else btn.style.cursor = '';
+  }
+
+  function recountCurrent() {
+    const counts = { paid: 0, unpaid: 0, none: 0, null: 0 };
+    document.querySelectorAll('.pay[data-current]').forEach(b => { counts[b.dataset.state]++; });
+    [['kpi-paid', counts.paid], ['kpi-unpaid', counts.unpaid], ['kpi-none', counts.none + counts.null]].forEach(([id, v]) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = v;
     });
+  }
 
-    // To'lov tugmalarini boshqarish
-    document.querySelectorAll('.tolov-btn').forEach(button => {
-        let clickCount = 0;  // Click sonini kuzatish uchun
-        
-        button.addEventListener('click', async function() {
-            try {
-                const isSuperuser = this.dataset.isSuperuser === 'true';
-                const currentStatus = this.textContent.trim();
-                const paymentType = this.dataset.type;
-                
-                // Oddiy user uchun click sonini tekshirish
-                if (!isSuperuser && clickCount >= 3) {
-                    alert("Siz to'lov holatini qayta o'zgartira olmaysiz");
-                    return;
-                }
+  document.querySelectorAll('#ledger .pay').forEach(b => paint(b, b.dataset.state));
 
-                let newStatus;
-                // Birinchi sikl (hamma uchun)
-                if (currentStatus === "To'lovni tasdiqlash") {
-                    newStatus = "To'lanmagan";
-                    clickCount = 1;
-                } else if (currentStatus === "To'lanmagan" && clickCount === 1) {
-                    newStatus = "To'langan";
-                    clickCount = 2;
-                } else if (currentStatus === "To'langan" && clickCount === 2) {
-                    newStatus = "Null";
-                    clickCount = 3;
-                } 
-                // Superuser uchun keyingi sikllar
-                else if (isSuperuser) {
-                    if (currentStatus === "Null") {
-                        newStatus = "To'lanmagan";
-                        clickCount = 1;
-                    } else if (currentStatus === "To'lanmagan") {
-                        newStatus = "To'langan";
-                        clickCount = 2;
-                    } else if (currentStatus === "To'langan") {
-                        newStatus = "Null";
-                        clickCount = 3;
-                    }
-                }
-
-                if (!newStatus) return;
-
-                const response = await fetch('/update_bugalteriya/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
-                    },
-                    body: JSON.stringify({
-                        tolov_id: this.dataset.tolovId || null,
-                        sotish_id: this.dataset.sotishId,
-                        gps_id: this.dataset.gpsId,
-                        oy: this.dataset.oy,
-                        yil: this.dataset.yil,
-                        type: paymentType,
-                        new_status: newStatus === "To'langan" ? true : 
-                                   newStatus === "To'lanmagan" ? false : null
-                    })
-                });
-
-                const data = await response.json();
-                
-                if (!data.status) {
-                    alert(data.message);
-                    return;
-                }
-
-                // To'lov ID ni yangilash
-                if (data.tolov_id) {
-                    this.dataset.tolovId = data.tolov_id;
-                }
-
-                // Tugma holatini yangilash
-                this.classList.remove(
-                    'bg-red-100', 'text-red-800', 'hover:bg-red-200',
-                    'bg-green-100', 'text-green-800', 'hover:bg-green-200',
-                    'bg-gray-100', 'text-gray-800', 'hover:bg-gray-200'
-                );
-
-                if (newStatus === "To'langan") {
-                    this.classList.add('bg-green-100', 'text-green-800', 'hover:bg-green-200');
-                } else if (newStatus === "To'lanmagan") {
-                    this.classList.add('bg-red-100', 'text-red-800', 'hover:bg-red-200');
-                } else {
-                    this.classList.add('bg-gray-100', 'text-gray-800', 'hover:bg-gray-200');
-                }
-                
-                this.textContent = newStatus;
-                
-            } catch (error) {
-                console.error('Xatolik:', error);
-                alert('Xatolik yuz berdi');
-            }
-        });
-    });
-});
-
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
+  document.getElementById('ledger')?.addEventListener('click', async e => {
+    const btn = e.target.closest('.pay');
+    if (!btn) return;
+    if (btn.dataset.state === 'null' && !IS_SUPERUSER) {
+      IDGPS.toast("Null holatni faqat administrator o'zgartira oladi", 'warning');
+      return;
     }
-    return cookieValue;
-}
+    btn.classList.add('is-loading');
+    try {
+      const res = await fetch('{% url "update_bugalteriya" %}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': IDGPS.getCookie('csrftoken') },
+        body: JSON.stringify({
+          tolov_id: btn.dataset.tolovId || null,
+          sotish_id: btn.dataset.sotishId,
+          gps_id: btn.dataset.gpsId,
+          oy: btn.dataset.oy,
+          yil: YEAR,
+          type: btn.dataset.type,
+        }),
+      });
+      const data = await res.json();
+      if (!data.status) throw new Error(data.message || 'Xatolik');
+      // Bitta yozuv ikkala tugmani (A va S) boshqaradi — ikkalasini yangilaymiz
+      document.querySelectorAll(`.pay[data-key="${btn.dataset.key}"]`).forEach(b => {
+        b.dataset.tolovId = data.tolov_id;
+        paint(b, b.dataset.type === 'sim' ? data.sim_state : data.abonent_state);
+      });
+      recountCurrent();
+    } catch (err) {
+      IDGPS.toast(err.message || "Saqlab bo'lmadi. Internetni tekshiring.", 'error');
+    } finally {
+      btn.classList.remove('is-loading');
+    }
+  });
+})();
 </script>
 {% endblock %}
